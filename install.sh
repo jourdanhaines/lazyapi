@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-REPO="flux-interactive/lazyapi"
+REPO="jourdanhaines/lazyapi"
 INSTALL_DIR="${INSTALL_DIR:-/usr/local/bin}"
 
 # Detect OS
@@ -30,40 +30,8 @@ BINARY="lazyapi-${OS}-${ARCH}"
 echo "Downloading ${BINARY}..."
 mkdir -p "$INSTALL_DIR"
 
-if command -v gh >/dev/null 2>&1 && gh auth status >/dev/null 2>&1; then
-    gh release download --repo "$REPO" --pattern "$BINARY" --dir "$INSTALL_DIR" --clobber
-    mv "${INSTALL_DIR}/${BINARY}" "${INSTALL_DIR}/lazyapi"
-elif [ -n "$GITHUB_TOKEN" ]; then
-    curl -fsSL \
-        -H "Authorization: token ${GITHUB_TOKEN}" \
-        -H "Accept: application/vnd.github.v3+json" \
-        "https://api.github.com/repos/${REPO}/releases/latest" \
-        -o /tmp/lazyapi-release.json
-
-    ASSET_ID=$(grep -o "\"id\": *[0-9]*" /tmp/lazyapi-release.json \
-        | head -1 | grep -o "[0-9]*" || true)
-
-    # Find asset ID by matching the binary name in the JSON
-    ASSET_ID=$(awk -v bin="$BINARY" '
-        /"name":/ && index($0, bin) { found=1 }
-        found && /"url":.*assets/ { match($0, /assets\/[0-9]+/); print substr($0, RSTART+7, RLENGTH-7); exit }
-    ' /tmp/lazyapi-release.json)
-    rm -f /tmp/lazyapi-release.json
-
-    if [ -z "$ASSET_ID" ]; then
-        echo "Error: could not find ${BINARY} in latest release" >&2
-        exit 1
-    fi
-
-    curl -fsSL \
-        -H "Authorization: token ${GITHUB_TOKEN}" \
-        -H "Accept: application/octet-stream" \
-        "https://api.github.com/repos/${REPO}/releases/assets/${ASSET_ID}" \
-        -o "${INSTALL_DIR}/lazyapi"
-else
-    DOWNLOAD_URL="https://github.com/${REPO}/releases/latest/download/${BINARY}"
-    curl -fsSL "$DOWNLOAD_URL" -o "${INSTALL_DIR}/lazyapi"
-fi
+DOWNLOAD_URL="https://github.com/${REPO}/releases/latest/download/${BINARY}"
+curl -fsSL "$DOWNLOAD_URL" -o "${INSTALL_DIR}/lazyapi"
 
 chmod +x "${INSTALL_DIR}/lazyapi"
 echo "Installed lazyapi to ${INSTALL_DIR}/lazyapi"

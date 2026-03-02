@@ -7,16 +7,13 @@ A terminal UI API client inspired by lazygit. Build, organize, and send HTTP req
 ### Quick install (Linux / macOS)
 
 ```sh
-curl -fsSL -H "Authorization: token $(gh auth token)" \
-    https://raw.githubusercontent.com/flux-interactive/lazyapi/main/install.sh \
-    | sudo GITHUB_TOKEN=$(gh auth token) sh
+curl -fsSL https://raw.githubusercontent.com/jourdanhaines/lazyapi/main/install.sh | sudo sh
 ```
 
-Requires the [GitHub CLI](https://cli.github.com/) (`gh auth login`). Install without sudo to a user directory:
+Install without sudo to a user directory:
 
 ```sh
-curl -fsSL -H "Authorization: token $(gh auth token)" \
-    https://raw.githubusercontent.com/flux-interactive/lazyapi/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/jourdanhaines/lazyapi/main/install.sh | sh
 ```
 
 ### From source
