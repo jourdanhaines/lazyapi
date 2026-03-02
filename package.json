@@ -10,7 +10,8 @@
         "build": "tsc",
         "dev": "tsc && bun bin/lazyapi.js",
         "start": "bun bin/lazyapi.js",
-        "test": "vitest run"
+        "test": "vitest run",
+        "release": "sh scripts/build.sh"
     },
     "keywords": ["api", "tui", "terminal", "http", "rest"],
     "license": "MIT",

@@ -4,7 +4,21 @@ A terminal UI API client inspired by lazygit. Build, organize, and send HTTP req
 
 ## Install
 
+### Quick install (Linux / macOS)
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/flux-interactive/lazyapi/main/install.sh | sh
 ```
+
+This downloads a prebuilt binary to `/usr/local/bin`. Override the install directory with `INSTALL_DIR`:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/flux-interactive/lazyapi/main/install.sh | INSTALL_DIR=~/.local/bin sh
+```
+
+### From source
+
+```sh
 bun install
 bun run build
 ```

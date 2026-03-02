@@ -1,0 +1,42 @@
+name: Release
+
+on:
+    push:
+        tags:
+            - "v*"
+
+permissions:
+    contents: write
+
+jobs:
+    release:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+
+            - uses: oven-sh/setup-bun@v2
+
+            - run: bun install
+
+            - name: Sync version to src/version.ts
+              run: |
+                  VERSION=$(node -p "require('./package.json').version")
+                  echo "export const VERSION = \"$VERSION\";" > src/version.ts
+
+            - name: Build binaries
+              run: |
+                  sh scripts/build.sh bun-linux-x64 lazyapi-linux-x64 &
+                  sh scripts/build.sh bun-linux-arm64 lazyapi-linux-arm64 &
+                  sh scripts/build.sh bun-darwin-x64 lazyapi-darwin-x64 &
+                  sh scripts/build.sh bun-darwin-arm64 lazyapi-darwin-arm64 &
+                  wait
+
+            - name: Create GitHub Release
+              uses: softprops/action-gh-release@v2
+              with:
+                  generate_release_notes: true
+                  files: |
+                      lazyapi-linux-x64
+                      lazyapi-linux-arm64
+                      lazyapi-darwin-x64
+                      lazyapi-darwin-arm64

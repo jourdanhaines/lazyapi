@@ -1,3 +1,5 @@
+import { VERSION } from './version.js';
+
 const args = process.argv.slice(2);
 
 if (args.includes('--help') || args.includes('-h')) {
@@ -30,12 +32,7 @@ Keybindings:
 }
 
 if (args.includes('--version') || args.includes('-v')) {
-    const { readFileSync } = await import('node:fs');
-    const { join, dirname } = await import('node:path');
-    const { fileURLToPath } = await import('node:url');
-    const __dirname = dirname(fileURLToPath(import.meta.url));
-    const pkg = JSON.parse(readFileSync(join(__dirname, '..', 'package.json'), 'utf-8'));
-    console.log(`lazyapi v${pkg.version}`);
+    console.log(`lazyapi v${VERSION}`);
     process.exit(0);
 }
 
