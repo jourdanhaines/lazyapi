@@ -469,22 +469,9 @@ function handleEditorKeys(input: string, key: any, store: ReturnType<typeof useS
             return;
         }
 
-        // For non-form body types: e edits the raw content
+        // For non-form body types: e opens inline multi-line editor
         if (input === 'e' && request.body.type !== 'none' && request.body.type !== 'form') {
-            store.openModal({
-                type: 'input',
-                title: 'Edit Body',
-                message: 'Enter body content:',
-                defaultValue: request.body.content,
-                onConfirm: (content) => {
-                    const newCollection = updateNode(project.collection, request.id, {
-                        body: { ...request.body, content },
-                    } as any);
-                    store.updateCollection(project.id, newCollection);
-                    projectManager.saveDebounced({ ...project, collection: newCollection });
-                },
-                onCancel: () => {},
-            });
+            store.setInputMode(true);
             return;
         }
 

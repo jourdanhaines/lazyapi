@@ -7,6 +7,7 @@ import { useTerminalSize } from "../../hooks/useTerminalSize";
 import { TabBar } from "../shared/TabBar";
 import { KeyValueEditor } from "../shared/KeyValueEditor";
 import { TextEditor } from "../shared/TextEditor";
+import { MultiLineEditor } from "../shared/MultiLineEditor";
 import { MethodBadge } from "../shared/MethodBadge";
 import { EmptyState } from "./EmptyState";
 import { projectManager } from "../../services/ProjectManager";
@@ -38,6 +39,7 @@ export function RequestEditor({ height }: Props) {
     const urlRef = useRef("");
 
     const isEditingUrl = inputMode && editorTab === 'url';
+    const isEditingBody = inputMode && editorTab === 'body';
 
     useInput((_input, key) => {
         if (key.escape) {
@@ -63,6 +65,26 @@ export function RequestEditor({ height }: Props) {
         store.updateCollection(project.id, newCollection);
         projectManager.saveDebounced({ ...project, collection: newCollection });
         store.setInputMode(false);
+    }
+
+    function handleBodySave(content: string) {
+        const store = useStore.getState();
+        const project = store.getActiveProject();
+        if (!project) return;
+
+        const selectedRequest = store.getSelectedRequest();
+        if (!selectedRequest) return;
+
+        const newCollection = updateNode(project.collection, selectedRequest.id, {
+            body: { ...selectedRequest.body, content },
+        } as any);
+        store.updateCollection(project.id, newCollection);
+        projectManager.saveDebounced({ ...project, collection: newCollection });
+        store.setInputMode(false);
+    }
+
+    function handleBodyCancel() {
+        useStore.getState().setInputMode(false);
     }
 
     function kvScrollOffset(pairCount: number, visible: number) {
@@ -173,13 +195,31 @@ export function RequestEditor({ height }: Props) {
                             </Box>
                         )}
 
-                        {request.body.type !== 'none' && request.body.type !== 'form' && (
+                        {request.body.type !== 'none' && request.body.type !== 'form' && isEditingBody && (
+                            <Box flexDirection="column">
+                                <MultiLineEditor
+                                    defaultValue={request.body.content}
+                                    visibleLines={contentHeight - 2}
+                                    isActive={isEditingBody}
+                                    syntax={request.body.type === 'json' ? 'json' : 'none'}
+                                    onSave={handleBodySave}
+                                    onCancel={handleBodyCancel}
+                                />
+
+                                <Box marginTop={1}>
+                                    <Text color="gray">Ctrl+S: save  Esc: cancel</Text>
+                                </Box>
+                            </Box>
+                        )}
+
+                        {request.body.type !== 'none' && request.body.type !== 'form' && !isEditingBody && (
                             <Box flexDirection="column">
                                 <TextEditor
                                     content={request.body.content}
                                     scrollOffset={0}
                                     visibleLines={contentHeight - 2}
                                     placeholder="Press 'e' to edit body"
+                                    syntax={request.body.type === 'json' ? 'json' : 'none'}
                                 />
 
                                 <Box marginTop={1}>
