@@ -30,7 +30,7 @@ BINARY="lazyapi-${OS}-${ARCH}"
 echo "Downloading ${BINARY}..."
 mkdir -p "$INSTALL_DIR"
 
-if command -v gh >/dev/null 2>&1; then
+if command -v gh >/dev/null 2>&1 && gh auth status >/dev/null 2>&1; then
     gh release download --repo "$REPO" --pattern "$BINARY" --dir "$INSTALL_DIR" --clobber
     mv "${INSTALL_DIR}/${BINARY}" "${INSTALL_DIR}/lazyapi"
 elif [ -n "$GITHUB_TOKEN" ]; then
