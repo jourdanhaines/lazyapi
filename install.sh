@@ -65,12 +65,27 @@ fi
 chmod +x "${INSTALL_DIR}/lazyapi"
 echo "Installed lazyapi to ${INSTALL_DIR}/lazyapi"
 
-# Check if install dir is in PATH
+# Add install dir to PATH if not already present
 case ":$PATH:" in
     *":${INSTALL_DIR}:"*) ;;
     *)
-        echo ""
-        echo "Add ${INSTALL_DIR} to your PATH:"
-        echo "  export PATH=\"${INSTALL_DIR}:\$PATH\""
+        EXPORT_LINE="export PATH=\"${INSTALL_DIR}:\$PATH\""
+        SHELL_NAME="$(basename "$SHELL")"
+        case "$SHELL_NAME" in
+            zsh)  PROFILE="$HOME/.zshrc" ;;
+            bash)
+                if [ -f "$HOME/.bashrc" ]; then
+                    PROFILE="$HOME/.bashrc"
+                else
+                    PROFILE="$HOME/.bash_profile"
+                fi
+                ;;
+            *)    PROFILE="$HOME/.profile" ;;
+        esac
+
+        echo "" >> "$PROFILE"
+        echo "$EXPORT_LINE" >> "$PROFILE"
+        echo "Added ${INSTALL_DIR} to PATH in ${PROFILE}"
+        echo "Restart your shell or run: source ${PROFILE}"
         ;;
 esac
