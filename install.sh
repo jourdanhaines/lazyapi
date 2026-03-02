@@ -30,16 +30,27 @@ BINARY="lazyapi-${OS}-${ARCH}"
 echo "Downloading ${BINARY}..."
 mkdir -p "$INSTALL_DIR"
 
-if [ -n "$GITHUB_TOKEN" ]; then
-    # Private repo: resolve asset URL via GitHub API
-    ASSET_URL=$(curl -fsSL \
+if command -v gh >/dev/null 2>&1; then
+    gh release download --repo "$REPO" --pattern "$BINARY" --dir "$INSTALL_DIR" --clobber
+    mv "${INSTALL_DIR}/${BINARY}" "${INSTALL_DIR}/lazyapi"
+elif [ -n "$GITHUB_TOKEN" ]; then
+    curl -fsSL \
         -H "Authorization: token ${GITHUB_TOKEN}" \
         -H "Accept: application/vnd.github.v3+json" \
         "https://api.github.com/repos/${REPO}/releases/latest" \
-        | grep -o "\"url\": *\"[^\"]*${BINARY}\"" \
-        | grep -o "https://[^\"]*")
+        -o /tmp/lazyapi-release.json
 
-    if [ -z "$ASSET_URL" ]; then
+    ASSET_ID=$(grep -o "\"id\": *[0-9]*" /tmp/lazyapi-release.json \
+        | head -1 | grep -o "[0-9]*" || true)
+
+    # Find asset ID by matching the binary name in the JSON
+    ASSET_ID=$(awk -v bin="$BINARY" '
+        /"name":/ && index($0, bin) { found=1 }
+        found && /"url":.*assets/ { match($0, /assets\/[0-9]+/); print substr($0, RSTART+7, RLENGTH-7); exit }
+    ' /tmp/lazyapi-release.json)
+    rm -f /tmp/lazyapi-release.json
+
+    if [ -z "$ASSET_ID" ]; then
         echo "Error: could not find ${BINARY} in latest release" >&2
         exit 1
     fi
@@ -47,19 +58,11 @@ if [ -n "$GITHUB_TOKEN" ]; then
     curl -fsSL \
         -H "Authorization: token ${GITHUB_TOKEN}" \
         -H "Accept: application/octet-stream" \
-        "$ASSET_URL" -o "${INSTALL_DIR}/lazyapi"
+        "https://api.github.com/repos/${REPO}/releases/assets/${ASSET_ID}" \
+        -o "${INSTALL_DIR}/lazyapi"
 else
-    # Public repo: download directly
     DOWNLOAD_URL="https://github.com/${REPO}/releases/latest/download/${BINARY}"
-
-    if command -v curl >/dev/null 2>&1; then
-        curl -fsSL "$DOWNLOAD_URL" -o "${INSTALL_DIR}/lazyapi"
-    elif command -v wget >/dev/null 2>&1; then
-        wget -qO "${INSTALL_DIR}/lazyapi" "$DOWNLOAD_URL"
-    else
-        echo "Error: curl or wget is required" >&2
-        exit 1
-    fi
+    curl -fsSL "$DOWNLOAD_URL" -o "${INSTALL_DIR}/lazyapi"
 fi
 
 chmod +x "${INSTALL_DIR}/lazyapi"
