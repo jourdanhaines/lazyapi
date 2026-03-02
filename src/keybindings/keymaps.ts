@@ -1,0 +1,56 @@
+import type { KeyMap } from "./types";
+
+export const DEFAULT_KEYMAP: KeyMap = {
+    global: [
+        { key: 'tab', label: 'Tab', description: 'Next panel', action: 'nextPanel' },
+        { key: 'shift-tab', label: 'S-Tab', description: 'Previous panel', action: 'prevPanel' },
+        { key: 'left', label: '←', description: 'Previous panel', action: 'prevPanel' },
+        { key: 'right', label: '→', description: 'Next panel', action: 'nextPanel' },
+        { key: '1', label: '1', description: 'Projects', action: 'focusProjects' },
+        { key: '2', label: '2', description: 'Requests', action: 'focusRequests' },
+        { key: '3', label: '3', description: 'Editor', action: 'focusEditor' },
+        { key: '4', label: '4', description: 'Response', action: 'focusResponse' },
+        { key: '?', label: '?', description: 'Help', action: 'showHelp' },
+        { key: 'q', label: 'q', description: 'Quit', action: 'quit' },
+    ],
+    panels: {
+        projects: [
+            { key: 'j/↓', label: 'j/↓', description: 'Down', action: 'moveDown' },
+            { key: 'k/↑', label: 'k/↑', description: 'Up', action: 'moveUp' },
+            { key: 'enter', label: '↵', description: 'Select', action: 'selectProject' },
+            { key: 'a', label: 'a', description: 'Add project', action: 'addProject' },
+            { key: 'e', label: 'e', description: 'Edit name', action: 'editProject' },
+            { key: 'd', label: 'd', description: 'Delete project', action: 'deleteProject' },
+            { key: 's', label: 's', description: 'Settings', action: 'openSettings' },
+            { key: 'J/K', label: 'J/K', description: 'Reorder', action: 'reorder' },
+        ],
+        requests: [
+            { key: 'j/↓', label: 'j/↓', description: 'Down', action: 'moveDown' },
+            { key: 'k/↑', label: 'k/↑', description: 'Up', action: 'moveUp' },
+            { key: 'enter', label: '↵', description: 'Select/Toggle', action: 'selectRequest' },
+            { key: 'a', label: 'a', description: 'Add request', action: 'addRequest' },
+            { key: 'A', label: 'A', description: 'Add folder', action: 'addFolder' },
+            { key: 'e', label: 'e', description: 'Edit name', action: 'editName' },
+            { key: 'd', label: 'd', description: 'Delete', action: 'deleteNode' },
+            { key: 'J/K', label: 'J/K', description: 'Reorder', action: 'reorder' },
+        ],
+        editor: [
+            { key: '[/]', label: '[/]', description: 'Switch tab', action: 'switchTab' },
+            { key: 'j/k', label: 'j/k', description: 'Navigate', action: 'navigate' },
+            { key: 'a', label: 'a', description: 'Add entry', action: 'addEntry' },
+            { key: 'e', label: 'e', description: 'Edit', action: 'editField' },
+            { key: 'd', label: 'd', description: 'Delete', action: 'deleteEntry' },
+            { key: 'space', label: '␣', description: 'Toggle', action: 'toggleEntry' },
+            { key: 't', label: 't', description: 'Body type', action: 'bodyType' },
+            { key: 'y', label: 'y', description: 'Yank', action: 'yank' },
+            { key: 'R', label: 'R', description: 'Send request', action: 'sendRequest' },
+        ],
+        response: [
+            { key: '[/↑', label: '[/↑', description: 'Prev tab', action: 'prevTab' },
+            { key: ']/↓', label: ']/↓', description: 'Next tab', action: 'nextTab' },
+            { key: 'j', label: 'j', description: 'Scroll down', action: 'scrollDown' },
+            { key: 'k', label: 'k', description: 'Scroll up', action: 'scrollUp' },
+            { key: 'y', label: 'y', description: 'Yank', action: 'yank' },
+        ],
+    },
+};

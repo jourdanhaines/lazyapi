@@ -1,0 +1,32 @@
+{
+    "name": "lazyapi",
+    "version": "0.1.0",
+    "description": "A cross-platform TUI API platform for developers",
+    "type": "module",
+    "bin": {
+        "lazyapi": "./bin/lazyapi.js"
+    },
+    "scripts": {
+        "build": "tsc",
+        "dev": "tsc && bun bin/lazyapi.js",
+        "start": "bun bin/lazyapi.js",
+        "test": "vitest run"
+    },
+    "keywords": ["api", "tui", "terminal", "http", "rest"],
+    "license": "MIT",
+    "dependencies": {
+        "ink": "^6.0.0",
+        "@inkjs/ui": "^2.0.0",
+        "react": "^19.0.0",
+        "zustand": "^5.0.0",
+        "nanoid": "^5.0.0",
+        "chalk": "^5.3.0"
+    },
+    "devDependencies": {
+        "typescript": "^5.7.0",
+        "@types/react": "^19.0.0",
+        "@types/node": "^22.0.0",
+        "vitest": "^3.0.0",
+        "ink-testing-library": "^4.0.0"
+    }
+}

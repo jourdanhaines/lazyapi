@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:www.npmjs.com)",
+      "Bash(bun run:*)",
+      "Bash(node:*)",
+      "Bash(bun install:*)",
+      "Bash(bunx vitest:*)",
+      "Bash(grep:*)",
+      "Bash(gh api:*)"
+    ]
+  }
+}
