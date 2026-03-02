@@ -7,13 +7,17 @@ A terminal UI API client inspired by lazygit. Build, organize, and send HTTP req
 ### Quick install (Linux / macOS)
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/flux-interactive/lazyapi/main/install.sh | sh
+curl -fsSL -H "Authorization: token $(gh auth token)" \
+    https://raw.githubusercontent.com/flux-interactive/lazyapi/main/install.sh \
+    | GITHUB_TOKEN=$(gh auth token) sh
 ```
 
-This downloads a prebuilt binary to `/usr/local/bin`. Override the install directory with `INSTALL_DIR`:
+Override the install directory with `INSTALL_DIR`:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/flux-interactive/lazyapi/main/install.sh | INSTALL_DIR=~/.local/bin sh
+curl -fsSL -H "Authorization: token $(gh auth token)" \
+    https://raw.githubusercontent.com/flux-interactive/lazyapi/main/install.sh \
+    | GITHUB_TOKEN=$(gh auth token) INSTALL_DIR=~/.local/bin sh
 ```
 
 ### From source
