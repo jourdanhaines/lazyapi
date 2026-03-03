@@ -12,6 +12,7 @@ import { MethodBadge } from "../shared/MethodBadge";
 import { EmptyState } from "./EmptyState";
 import { projectManager } from "../../services/ProjectManager";
 import { updateNode } from "../../utils/tree";
+import { getEditorName } from "../../utils/externalEditor";
 import type { EditorTab } from "../../types/ui";
 
 const EDITOR_TABS = ['url', 'params', 'headers', 'body'] as const;
@@ -223,7 +224,11 @@ export function RequestEditor({ height }: Props) {
                                 />
 
                                 <Box marginTop={1}>
-                                    <Text color="gray">e: edit body</Text>
+                                    <Text color="gray">
+                                        {getEditorName()
+                                            ? `e: edit body (${getEditorName()})`
+                                            : "e: edit body"}
+                                    </Text>
                                 </Box>
                             </Box>
                         )}

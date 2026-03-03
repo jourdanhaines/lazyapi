@@ -14,6 +14,8 @@ import { HTTP_METHODS } from "../types/request";
 import { copyToClipboard } from "../utils/clipboard";
 import { formatDuration } from "../utils/format";
 import { getMethodColor } from "../utils/color";
+import { getExternalEditor, openInExternalEditor } from "../utils/externalEditor";
+import { clearInkOutput } from "../inkInstance";
 export function useKeybindings(onQuit: () => void) {
     const store = useStore();
 
@@ -469,8 +471,20 @@ function handleEditorKeys(input: string, key: any, store: ReturnType<typeof useS
             return;
         }
 
-        // For non-form body types: e opens inline multi-line editor
+        // For non-form body types: e opens editor
         if (input === 'e' && request.body.type !== 'none' && request.body.type !== 'form') {
+            if (getExternalEditor()) {
+                const result = openInExternalEditor(request.body.content, request.body.type);
+                clearInkOutput();
+                if (result !== null) {
+                    const newCollection = updateNode(project.collection, request.id, {
+                        body: { ...request.body, content: result },
+                    } as any);
+                    store.updateCollection(project.id, newCollection);
+                    projectManager.saveDebounced({ ...project, collection: newCollection });
+                }
+                return;
+            }
             store.setInputMode(true);
             return;
         }

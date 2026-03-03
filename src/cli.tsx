@@ -46,6 +46,7 @@ if (projectIdx !== -1 && args[projectIdx + 1]) {
 const React = await import('react');
 const { render } = await import('ink');
 const { App } = await import('./app.js');
+const { setInkClear } = await import('./inkInstance.js');
 
 // Use alternate screen buffer so TUI output is cleared on exit
 const restoreScreen = () => process.stdout.write('\x1b[?1049l');
@@ -54,4 +55,5 @@ process.on('SIGINT', () => { restoreScreen(); process.exit(0); });
 process.on('SIGTERM', () => { restoreScreen(); process.exit(0); });
 
 const instance = render(React.createElement(App, { projectName }));
+setInkClear(() => instance.clear());
 instance.waitUntilExit().then(restoreScreen);
