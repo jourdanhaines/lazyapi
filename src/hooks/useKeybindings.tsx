@@ -8,7 +8,7 @@ import { historyManager } from "../services/HistoryManager";
 import { configManager } from "../services/ConfigManager";
 import { requestId, folderId } from "../utils/id";
 import { flattenVisibleTree } from "../utils/tree";
-import { insertNode, removeNode, toggleFolder, updateNode, moveNode } from "../utils/tree";
+import { insertNode, removeNode, toggleFolder, updateNode, moveNode, reparentNode, collectFolders } from "../utils/tree";
 import type { RequestItem, RequestFolder, HttpMethod, KeyValuePair, RequestBodyType } from "../types/request";
 import { HTTP_METHODS } from "../types/request";
 import { copyToClipboard } from "../utils/clipboard";
@@ -317,6 +317,50 @@ function handleRequestTreeKeys(input: string, key: any, store: ReturnType<typeof
         const newCollection = moveNode(project.collection, selectedId, 'up');
         store.updateCollection(project.id, newCollection);
         projectManager.saveDebounced({ ...project, collection: newCollection });
+        return;
+    }
+
+    // m: move item to a different folder
+    if (input === 'm' && store.selectedRequestId) {
+        const selectedId = store.selectedRequestId;
+        const node = flatItems.find(f => f.node.id === selectedId);
+        if (!node) return;
+
+        const folders = collectFolders(project.collection);
+
+        // Filter out the node itself (if it's a folder) and any of its descendants
+        const validFolders = node.node.type === 'folder'
+            ? folders.filter(f => {
+                if (f.id === selectedId) return false;
+                const targetNode = flatItems.find(fi => fi.node.id === f.id);
+                const sourceNode = flatItems.find(fi => fi.node.id === selectedId);
+                if (targetNode && sourceNode) {
+                    const sourcePrefix = sourceNode.path.join(',');
+                    const targetPrefix = targetNode.path.join(',');
+                    return !targetPrefix.startsWith(sourcePrefix + ',');
+                }
+                return true;
+            })
+            : folders;
+
+        const options = ['/ (root)', ...validFolders.map(f => `${'  '.repeat(f.depth)}${f.name}`)];
+        const folderIds: (string | null)[] = [null, ...validFolders.map(f => f.id)];
+
+        store.openModal({
+            type: 'select',
+            title: `Move "${node.node.name}" to`,
+            options,
+            onConfirm: (selected) => {
+                const index = options.indexOf(selected);
+                const targetParentId = folderIds[index];
+                const latestProject = useStore.getState().getActiveProject();
+                if (!latestProject) return;
+                const newCollection = reparentNode(latestProject.collection, selectedId, targetParentId);
+                useStore.getState().updateCollection(latestProject.id, newCollection);
+                projectManager.saveDebounced({ ...latestProject, collection: newCollection });
+            },
+            onCancel: () => {},
+        });
         return;
     }
 
@@ -637,6 +681,11 @@ function handleResponseKeys(input: string, key: any, store: ReturnType<typeof us
         yankResponseContent(store);
         return;
     }
+
+    if (input === 'e') {
+        openResponseInEditor(store);
+        return;
+    }
 }
 
 function yankEditorContent(store: ReturnType<typeof useStore.getState>) {
@@ -675,6 +724,31 @@ function yankEditorContent(store: ReturnType<typeof useStore.getState>) {
     if (copyToClipboard(content)) {
         store.setStatusMessage("Copied to clipboard");
     }
+}
+
+function openResponseInEditor(store: ReturnType<typeof useStore.getState>) {
+    const response = store.currentResponse;
+    if (!response || !getExternalEditor()) return;
+
+    const contentType = Object.entries(response.response.headers).find(
+        ([key]) => key.toLowerCase() === "content-type"
+    )?.[1] ?? "";
+    const bodyType = contentType.includes("json") ? "json" : "text";
+
+    let content = response.response.body;
+    if (bodyType === "json") {
+        try {
+            content = JSON.stringify(JSON.parse(content), null, 4);
+        } catch {}
+    }
+
+    openInExternalEditor(content, bodyType);
+    clearInkOutput();
+
+    // Re-enable SGR mouse tracking — the editor process resets terminal modes
+    process.stdout.write("\x1b[?1000h\x1b[?1006h");
+
+    store.setStatusMessage("Opened response in editor");
 }
 
 function yankResponseContent(store: ReturnType<typeof useStore.getState>) {

@@ -1,13 +1,14 @@
-import React, { useState } from "react";
-import { Box, Text } from "ink";
-import { useStore } from "../../state/store";
-import { usePanelFocus } from "../../hooks/usePanelFocus";
-import { TabBar } from "../shared/TabBar";
-import { JsonViewer } from "../shared/JsonViewer";
-import { EmptyState } from "./EmptyState";
-import { getStatusColor } from "../../utils/color";
-import { formatBytes, formatDuration } from "../../utils/format";
-import type { ResponseTab } from "../../types/ui";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
+import { Box, Text, useInput } from "ink";
+import { useStore } from "../../state/store.js";
+import { usePanelFocus } from "../../hooks/usePanelFocus.js";
+import { useMouseScroll } from "../../hooks/useMouseScroll.js";
+import { TabBar } from "../shared/TabBar.js";
+import { ContentViewer } from "../shared/ContentViewer.js";
+import { EmptyState } from "./EmptyState.js";
+import { getStatusColor } from "../../utils/color.js";
+import { formatBytes, formatDuration, formatResponseBody, getResponseSyntax } from "../../utils/format.js";
+import type { ResponseTab } from "../../types/ui.js";
 
 const RESPONSE_TABS = ['body', 'headers', 'timing', 'history'] as const;
 const TAB_LABELS: Record<ResponseTab, string> = {
@@ -32,6 +33,56 @@ export function ResponseViewer({ height }: Props) {
 
     const [scrollOffset, setScrollOffset] = useState(0);
 
+    const syntax = useMemo(() => {
+        if (!response) return "none" as const;
+        return getResponseSyntax(response.response.headers);
+    }, [response]);
+
+    const formattedBody = useMemo(() => {
+        if (!response) return "";
+        return formatResponseBody(response.response.body, syntax);
+    }, [response, syntax]);
+
+    const totalLines = useMemo(() => {
+        if (!formattedBody) return 0;
+        return formattedBody.split("\n").length;
+    }, [formattedBody]);
+
+    const contentHeight = Math.max(1, height - 5);
+    const visibleLines = Math.max(1, contentHeight - 1);
+
+    useEffect(() => {
+        setScrollOffset(0);
+    }, [response, responseTab]);
+
+    const maxOffset = Math.max(0, totalLines - visibleLines);
+
+    useInput((input) => {
+        if (responseTab !== "body" || !response) return;
+
+        if (input === "j") {
+            setScrollOffset(prev => Math.min(prev + 1, maxOffset));
+        }
+
+        if (input === "k") {
+            setScrollOffset(prev => Math.max(prev - 1, 0));
+        }
+    }, { isActive: isFocused });
+
+    const onScrollUp = useCallback(() => {
+        setScrollOffset(prev => Math.max(prev - 3, 0));
+    }, []);
+
+    const onScrollDown = useCallback(() => {
+        setScrollOffset(prev => Math.min(prev + 3, maxOffset));
+    }, [maxOffset]);
+
+    useMouseScroll({
+        isActive: isFocused && responseTab === "body" && !!response,
+        onScrollUp,
+        onScrollDown,
+    });
+
     if (isLoading) {
         return (
             <Box flexDirection="column" alignItems="center" justifyContent="center" flexGrow={1}>
@@ -54,8 +105,6 @@ export function ResponseViewer({ height }: Props) {
         return <EmptyState message="No response yet" hint="Send a request with R" />;
     }
 
-    const contentHeight = Math.max(1, height - 5);
-
     const renderTabContent = () => {
         switch (responseTab) {
             case 'body':
@@ -70,10 +119,11 @@ export function ResponseViewer({ height }: Props) {
                             </Text>
                         </Box>
 
-                        <JsonViewer
-                            content={response.response.body}
+                        <ContentViewer
+                            content={formattedBody}
+                            syntax={syntax}
                             scrollOffset={scrollOffset}
-                            visibleLines={contentHeight - 1}
+                            visibleLines={visibleLines}
                         />
                     </Box>
                 );

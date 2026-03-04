@@ -6,7 +6,7 @@ import { usePanelFocus } from "../../hooks/usePanelFocus";
 import { useTerminalSize } from "../../hooks/useTerminalSize";
 import { TabBar } from "../shared/TabBar";
 import { KeyValueEditor } from "../shared/KeyValueEditor";
-import { TextEditor } from "../shared/TextEditor";
+import { ContentViewer } from "../shared/ContentViewer";
 import { MultiLineEditor } from "../shared/MultiLineEditor";
 import { MethodBadge } from "../shared/MethodBadge";
 import { EmptyState } from "./EmptyState";
@@ -215,12 +215,12 @@ export function RequestEditor({ height }: Props) {
 
                         {request.body.type !== 'none' && request.body.type !== 'form' && !isEditingBody && (
                             <Box flexDirection="column">
-                                <TextEditor
+                                <ContentViewer
                                     content={request.body.content}
+                                    syntax={request.body.type === 'json' ? 'json' : 'none'}
                                     scrollOffset={0}
                                     visibleLines={contentHeight - 2}
                                     placeholder="Press 'e' to edit body"
-                                    syntax={request.body.type === 'json' ? 'json' : 'none'}
                                 />
 
                                 <Box marginTop={1}>

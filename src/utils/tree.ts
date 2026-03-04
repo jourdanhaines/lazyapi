@@ -85,6 +85,25 @@ export function moveNode(nodes: RequestTreeNode[], id: string, direction: 'up' |
     });
 }
 
+export function reparentNode(nodes: RequestTreeNode[], nodeId: string, targetParentId: string | null): RequestTreeNode[] {
+    const node = findNode(nodes, nodeId);
+    if (!node) return nodes;
+
+    const without = removeNode(nodes, nodeId);
+    return insertNode(without, targetParentId, node);
+}
+
+export function collectFolders(nodes: RequestTreeNode[], depth = 0): { id: string; name: string; depth: number }[] {
+    const result: { id: string; name: string; depth: number }[] = [];
+    for (const node of nodes) {
+        if (node.type === 'folder') {
+            result.push({ id: node.id, name: node.name, depth });
+            result.push(...collectFolders(node.children, depth + 1));
+        }
+    }
+    return result;
+}
+
 export function toggleFolder(nodes: RequestTreeNode[], id: string): RequestTreeNode[] {
     return nodes.map(node => {
         if (node.id === id && node.type === 'folder') {
