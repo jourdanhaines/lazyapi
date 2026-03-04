@@ -31,9 +31,10 @@ echo "Downloading ${BINARY}..."
 mkdir -p "$INSTALL_DIR"
 
 DOWNLOAD_URL="https://github.com/${REPO}/releases/latest/download/${BINARY}"
-curl -fsSL "$DOWNLOAD_URL" -o "${INSTALL_DIR}/lazyapi"
-
-chmod +x "${INSTALL_DIR}/lazyapi"
+TMPFILE="$(mktemp)"
+curl -f#L "$DOWNLOAD_URL" -o "$TMPFILE"
+chmod +x "$TMPFILE"
+mv -f "$TMPFILE" "${INSTALL_DIR}/lazyapi"
 echo "Installed lazyapi to ${INSTALL_DIR}/lazyapi"
 
 # Add install dir to PATH if not already present
