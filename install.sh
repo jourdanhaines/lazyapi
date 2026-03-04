@@ -32,10 +32,14 @@ mkdir -p "$INSTALL_DIR"
 
 DOWNLOAD_URL="https://github.com/${REPO}/releases/latest/download/${BINARY}.gz"
 TMPGZ="$(mktemp)"
+TMPFILE="$(mktemp)"
 curl -f#L "$DOWNLOAD_URL" -o "$TMPGZ"
-gunzip -c "$TMPGZ" > "${INSTALL_DIR}/lazyapi"
+gunzip -c "$TMPGZ" > "$TMPFILE"
 rm -f "$TMPGZ"
-chmod +x "${INSTALL_DIR}/lazyapi"
+chmod +x "$TMPFILE"
+rm -f "${INSTALL_DIR}/lazyapi"
+cp "$TMPFILE" "${INSTALL_DIR}/lazyapi"
+rm -f "$TMPFILE"
 echo "Installed lazyapi to ${INSTALL_DIR}/lazyapi"
 
 # Add install dir to PATH if not already present
