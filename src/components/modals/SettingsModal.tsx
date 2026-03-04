@@ -1,17 +1,21 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Box, Text, useInput } from "ink";
+import { dirname } from "node:path";
 import { Modal } from "./Modal";
 import { useStore } from "../../state/store";
 import { configManager } from "../../services/ConfigManager";
+import { storageManager } from "../../services/StorageManager";
 import { themeManager } from "../../services/ThemeManager";
 import { BUILTIN_THEMES } from "../../types/theme";
+import { VERSION } from "../../version";
 
-const SETTINGS_TABS = ['general', 'theme'] as const;
+const SETTINGS_TABS = ['general', 'theme', 'info'] as const;
 type SettingsTab = (typeof SETTINGS_TABS)[number];
 
 const TAB_LABELS: Record<SettingsTab, string> = {
     general: 'General',
     theme: 'Theme',
+    info: 'Info',
 };
 
 interface Props {
@@ -29,6 +33,9 @@ export function SettingsModal({ onClose }: Props) {
     const [themeKeys, setThemeKeys] = useState<string[]>([]);
     const [themeIndex, setThemeIndex] = useState(0);
     const [showAppBackground, setShowAppBackground] = useState(config.ui.showAppBackground);
+    const [latestVersion, setLatestVersion] = useState<string | null>(null);
+    const [isCheckingVersion, setIsCheckingVersion] = useState(true);
+    const [hasVersionError, setHasVersionError] = useState(false);
 
     const previewTheme = useCallback(async (index: number) => {
         const key = themeKeys[index];
@@ -56,6 +63,24 @@ export function SettingsModal({ onClose }: Props) {
             previewTheme(themeIndex);
         }
     }, [themeIndex, activeTab, themeKeys]);
+
+    useEffect(() => {
+        (async () => {
+            try {
+                const res = await fetch('https://api.github.com/repos/jourdanhaines/lazyapi/releases/latest');
+                if (!res.ok) throw new Error('fetch failed');
+                const data = await res.json();
+                const tag = (data.tag_name as string).replace(/^v/, '');
+                setLatestVersion(tag);
+            } catch {
+                setHasVersionError(true);
+            } finally {
+                setIsCheckingVersion(false);
+            }
+        })();
+    }, []);
+
+    const isUpdateAvailable = latestVersion !== null && latestVersion !== VERSION;
 
     useInput((input, key) => {
         if (key.escape) {
@@ -95,6 +120,12 @@ export function SettingsModal({ onClose }: Props) {
                     await configManager.save(cfg);
                     useStore.getState().updateConfig({ ui: { ...cfg.ui } });
                 })();
+            }
+        } else if (activeTab === 'info') {
+            if (input === 'u' && isUpdateAvailable) {
+                useStore.getState().setStatusMessage('Run: curl -fsSL https://raw.githubusercontent.com/jourdanhaines/lazyapi/main/install.sh | bash');
+                onClose();
+                return;
             }
         } else if (activeTab === 'theme') {
             if (input === 'j' || key.downArrow) {
@@ -173,13 +204,45 @@ export function SettingsModal({ onClose }: Props) {
                         ))}
                     </Box>
                 )}
+                {activeTab === 'info' && (
+                    <Box flexDirection="column" gap={1}>
+                        <Box>
+                            <Text color={theme.colors.modalText}>Version:     </Text>
+                            <Text color={theme.colors.modalText}>{VERSION} </Text>
+                            {isCheckingVersion && <Text color="gray">(checking...)</Text>}
+                            {hasVersionError && <Text color="gray">(unable to check)</Text>}
+                            {!isCheckingVersion && !hasVersionError && !isUpdateAvailable && (
+                                <Text color="green">(latest)</Text>
+                            )}
+                            {isUpdateAvailable && (
+                                <Text color="yellow">(v{latestVersion} available)</Text>
+                            )}
+                        </Box>
+
+                        <Box>
+                            <Text color={theme.colors.modalText}>Author:      </Text>
+                            <Text color={theme.colors.modalText}>Jourdan Haines</Text>
+                        </Box>
+
+                        <Box>
+                            <Text color={theme.colors.modalText}>Install Dir: </Text>
+                            <Text color={theme.colors.modalText}>{dirname(process.execPath)}</Text>
+                        </Box>
+
+                        <Box>
+                            <Text color={theme.colors.modalText}>Config Dir:  </Text>
+                            <Text color={theme.colors.modalText}>{storageManager.getBaseDir()}</Text>
+                        </Box>
+                    </Box>
+                )}
             </Box>
 
             <Box marginTop={1}>
                 <Text color={theme.colors.modalHintText}>
-                    {activeTab === 'general'
-                        ? '[/]: tabs  Enter/Space: toggle  Esc: close'
-                        : '[/]: tabs  j/k: navigate  Enter: select  Esc: cancel'}
+                    {activeTab === 'general' && '[/]: tabs  Enter/Space: toggle  Esc: close'}
+                    {activeTab === 'theme' && '[/]: tabs  j/k: navigate  Enter: select  Esc: cancel'}
+                    {activeTab === 'info' && isUpdateAvailable && '[/]: tabs  u: update  Esc: close'}
+                    {activeTab === 'info' && !isUpdateAvailable && '[/]: tabs  Esc: close'}
                 </Text>
             </Box>
         </Modal>
