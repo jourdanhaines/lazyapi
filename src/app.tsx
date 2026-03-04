@@ -79,7 +79,7 @@ export function App({ projectName }: AppProps) {
         init();
     }, []);
 
-    // Persist selected request across restarts
+    // Persist selected request and load last response on selection change
     useEffect(() => {
         let prevRequestId: string | null = null;
         return useStore.subscribe((state) => {
@@ -87,10 +87,19 @@ export function App({ projectName }: AppProps) {
             if (selectedRequestId === prevRequestId) return;
             prevRequestId = selectedRequestId;
             if (!activeProjectId || !selectedRequestId) return;
+
             configManager.load().then((config) => {
                 config.lastRequestMap = config.lastRequestMap ?? {};
                 config.lastRequestMap[activeProjectId] = selectedRequestId;
                 configManager.save(config);
+            });
+
+            historyManager.load(selectedRequestId).then((history) => {
+                const current = useStore.getState();
+                if (current.selectedRequestId !== selectedRequestId) return;
+                current.setResponseHistory(history);
+                current.setCurrentResponse(history[0] ?? null);
+                current.setError(null);
             });
         });
     }, []);
