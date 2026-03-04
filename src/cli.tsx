@@ -1,4 +1,4 @@
-import { VERSION } from './version.js';
+import { VERSION } from './version';
 
 const args = process.argv.slice(2);
 

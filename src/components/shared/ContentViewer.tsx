@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { Box, Text } from "ink";
-import { tokenizeJsonLine, highlightTokens } from "../../utils/syntax.js";
+import { tokenizeJsonLine, highlightTokens } from "../../utils/syntax";
 
 type Props = {
     content: string;

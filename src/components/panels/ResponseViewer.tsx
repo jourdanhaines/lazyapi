@@ -1,14 +1,14 @@
 import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { Box, Text, useInput } from "ink";
-import { useStore } from "../../state/store.js";
-import { usePanelFocus } from "../../hooks/usePanelFocus.js";
-import { useMouseScroll } from "../../hooks/useMouseScroll.js";
-import { TabBar } from "../shared/TabBar.js";
-import { ContentViewer } from "../shared/ContentViewer.js";
-import { EmptyState } from "./EmptyState.js";
-import { getStatusColor } from "../../utils/color.js";
-import { formatBytes, formatDuration, formatResponseBody, getResponseSyntax } from "../../utils/format.js";
-import type { ResponseTab } from "../../types/ui.js";
+import { useStore } from "../../state/store";
+import { usePanelFocus } from "../../hooks/usePanelFocus";
+import { useMouseScroll } from "../../hooks/useMouseScroll";
+import { TabBar } from "../shared/TabBar";
+import { ContentViewer } from "../shared/ContentViewer";
+import { EmptyState } from "./EmptyState";
+import { getStatusColor } from "../../utils/color";
+import { formatBytes, formatDuration, formatResponseBody, getResponseSyntax } from "../../utils/format";
+import type { ResponseTab } from "../../types/ui";
 
 const RESPONSE_TABS = ['body', 'headers', 'timing', 'history'] as const;
 const TAB_LABELS: Record<ResponseTab, string> = {
