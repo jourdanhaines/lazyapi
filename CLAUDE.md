@@ -3,6 +3,7 @@
 ## Code Style
 - **Indentation**: Always use 4 spaces for TS/JS/JSON files
 - **Package manager**: Always use Bun (never npm/yarn/pnpm)
+- **Imports**: Never include file extensions in import paths
 
 ## Tech Stack
 - **Runtime**: Bun
@@ -65,6 +66,11 @@
 - Order props by: short names first → group similar names (e.g., `is*` together) → functions last
 - Internal-only props: use `type Props = { ... }`
 - Exported/shared props: use `interface ComponentNameProps { ... }`
+
+## Git Commits
+- Never include `Co-Authored-By` lines
+- Keep commit messages to a short single-line subject, no message body
+- Split unrelated changes into separate commits (one per topic)
 
 ## Important Notes
 - Ink 6 requires React 19 (react-reconciler 0.33 needs React 19's SharedInternals.S)
