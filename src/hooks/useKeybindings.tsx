@@ -13,6 +13,15 @@ import type { RequestItem, RequestFolder, HttpMethod, KeyValuePair, RequestBodyT
 import { HTTP_METHODS } from "../types/request";
 import { copyToClipboard } from "../utils/clipboard";
 import { formatDuration } from "../utils/format";
+import { VERSION } from "../version";
+
+const DEFAULT_HEADERS: KeyValuePair[] = [
+    { key: "Cache-Control", value: "no-cache", enabled: true },
+    { key: "User-Agent", value: `lazyapi/${VERSION}`, enabled: true },
+    { key: "Accept", value: "*/*", enabled: true },
+    { key: "Accept-Encoding", value: "gzip, deflate, br", enabled: true },
+    { key: "Connection", value: "keep-alive", enabled: true },
+];
 import { getMethodColor } from "../utils/color";
 import { getExternalEditor, openInExternalEditor } from "../utils/externalEditor";
 import { clearInkOutput } from "../inkInstance";
@@ -211,7 +220,7 @@ function handleRequestTreeKeys(input: string, key: any, store: ReturnType<typeof
                     method: 'GET',
                     url: '',
                     params: [],
-                    headers: [],
+                    headers: DEFAULT_HEADERS.map(h => ({ ...h })),
                     body: { type: 'none', content: '', formData: [] },
                 };
                 const newCollection = insertNode(project.collection, store.selectedFolderPath, newRequest);
