@@ -1,6 +1,6 @@
 {
     "name": "lazyapi",
-    "version": "0.1.4",
+    "version": "0.2.0",
     "description": "A cross-platform TUI API platform for developers",
     "type": "module",
     "bin": {
