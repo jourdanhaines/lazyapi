@@ -7,14 +7,17 @@ import { configManager } from "../../services/ConfigManager";
 import { storageManager } from "../../services/StorageManager";
 import { themeManager } from "../../services/ThemeManager";
 import { BUILTIN_THEMES } from "../../types/theme";
+import { projectManager } from "../../services/ProjectManager";
+import { gitProjectManager } from "../../services/GitProjectManager";
 import { VERSION } from "../../version";
 
-const SETTINGS_TABS = ['general', 'theme', 'info'] as const;
+const SETTINGS_TABS = ['general', 'theme', 'storage', 'info'] as const;
 type SettingsTab = (typeof SETTINGS_TABS)[number];
 
 const TAB_LABELS: Record<SettingsTab, string> = {
     general: 'General',
     theme: 'Theme',
+    storage: 'Storage',
     info: 'Info',
 };
 
@@ -127,6 +130,30 @@ export function SettingsModal({ onClose }: Props) {
                 onClose();
                 return;
             }
+        } else if (activeTab === 'storage') {
+            if (key.return || input === ' ') {
+                const store = useStore.getState();
+                const project = store.getActiveProject();
+                if (!project) return;
+
+                if (project.storageMode === 'local') {
+                    (async () => {
+                        const gitDir = await gitProjectManager.initGitDir(process.cwd());
+                        const updated = { ...project, storageMode: 'git' as const, gitDir };
+                        store.updateProject(project.id, { storageMode: 'git', gitDir });
+                        await gitProjectManager.saveProject(gitDir, updated);
+                        store.setStatusMessage(`Project saved to ${gitDir}`);
+                    })();
+                } else {
+                    (async () => {
+                        const updated = { ...project, storageMode: 'local' as const, gitDir: undefined };
+                        store.updateProject(project.id, { storageMode: 'local', gitDir: undefined });
+                        await projectManager.save(updated);
+                        store.setStatusMessage('Project switched to local storage');
+                    })();
+                }
+                onClose();
+            }
         } else if (activeTab === 'theme') {
             if (input === 'j' || key.downArrow) {
                 setThemeIndex(prev => Math.min(themeNames.length - 1, prev + 1));
@@ -190,6 +217,59 @@ export function SettingsModal({ onClose }: Props) {
                         </Box>
                     </Box>
                 )}
+                {activeTab === 'storage' && (() => {
+                    const project = useStore.getState().getActiveProject();
+                    const isGit = project?.storageMode === 'git';
+                    return (
+                        <Box flexDirection="column">
+                            {!project && (
+                                <Text color="gray" italic>No active project.</Text>
+                            )}
+
+                            {project && (
+                                <Box flexDirection="column">
+                                    <Box>
+                                        <Text color={theme.colors.modalText}>Project:  </Text>
+                                        <Text color={theme.colors.modalTitleText} bold>{project.name}</Text>
+                                    </Box>
+
+                                    <Box marginTop={1}>
+                                        <Text color={theme.colors.selectedItem}>
+                                            {'▸ '}Storage Mode: {' '}
+                                        </Text>
+                                        <Text color={isGit ? 'green' : 'gray'} bold>
+                                            {isGit ? 'Git' : 'Local'}
+                                        </Text>
+                                    </Box>
+
+                                    {isGit && project.gitDir && (
+                                        <Box marginTop={1}>
+                                            <Text color={theme.colors.modalText}>Path: </Text>
+                                            <Text color="gray">{project.gitDir}</Text>
+                                        </Box>
+                                    )}
+
+                                    <Box marginTop={1}>
+                                        <Text color="gray" italic>
+                                            {isGit
+                                                ? 'Press Enter to switch back to local storage.'
+                                                : 'Press Enter to store in .lazyapi/ for Git sharing.'}
+                                        </Text>
+                                    </Box>
+
+                                    {isGit && (
+                                        <Box marginTop={1}>
+                                            <Text color="yellow">
+                                                Secrets (isSecret=true) are stored in secrets.json (gitignored).
+                                            </Text>
+                                        </Box>
+                                    )}
+                                </Box>
+                            )}
+                        </Box>
+                    );
+                })()}
+
                 {activeTab === 'theme' && (
                     <Box flexDirection="column">
                         {themeNames.map((name, index) => (
@@ -240,6 +320,7 @@ export function SettingsModal({ onClose }: Props) {
             <Box marginTop={1}>
                 <Text color={theme.colors.modalHintText}>
                     {activeTab === 'general' && '[/]: tabs  Enter/Space: toggle  Esc: close'}
+                    {activeTab === 'storage' && '[/]: tabs  Enter/Space: toggle mode  Esc: close'}
                     {activeTab === 'theme' && '[/]: tabs  j/k: navigate  Enter: select  Esc: cancel'}
                     {activeTab === 'info' && isUpdateAvailable && '[/]: tabs  u: update  Esc: close'}
                     {activeTab === 'info' && !isUpdateAvailable && '[/]: tabs  Esc: close'}

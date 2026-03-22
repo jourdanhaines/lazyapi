@@ -1,4 +1,5 @@
 import { storageManager } from "./StorageManager";
+import { gitProjectManager } from "./GitProjectManager";
 import type { Project } from "../types/project";
 import { projectId } from "../utils/id";
 
@@ -8,19 +9,36 @@ export class ProjectManager {
         const projects: Project[] = [];
         for (const file of files) {
             if (file.endsWith('.json')) {
-                const project = await storageManager.read<Project>(`projects/${file}`);
-                if (project) projects.push(project);
+                const raw = await storageManager.read<Record<string, unknown>>(`projects/${file}`);
+                if (raw) projects.push(this.migrate(raw));
             }
         }
         return projects;
     }
 
+    private migrate(raw: Record<string, unknown>): Project {
+        return {
+            ...raw,
+            environments: raw.environments ?? [],
+            activeEnvironmentId: raw.activeEnvironmentId ?? null,
+            storageMode: raw.storageMode ?? 'local',
+        } as Project;
+    }
+
     async save(project: Project): Promise<void> {
-        await storageManager.write(`projects/${project.id}.json`, project);
+        if (project.storageMode === 'git' && project.gitDir) {
+            await gitProjectManager.saveProject(project.gitDir, project);
+        } else {
+            await storageManager.write(`projects/${project.id}.json`, project);
+        }
     }
 
     saveDebounced(project: Project): void {
-        storageManager.writeDebounced(`projects/${project.id}.json`, project);
+        if (project.storageMode === 'git' && project.gitDir) {
+            gitProjectManager.saveProjectDebounced(project.gitDir, project);
+        } else {
+            storageManager.writeDebounced(`projects/${project.id}.json`, project);
+        }
     }
 
     async create(name: string, baseUrl = ''): Promise<Project> {
@@ -30,6 +48,9 @@ export class ProjectManager {
             baseUrl,
             defaultHeaders: [],
             collection: [],
+            environments: [],
+            activeEnvironmentId: null,
+            storageMode: 'local',
         };
         await this.save(project);
         return project;

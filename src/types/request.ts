@@ -6,6 +6,7 @@ export interface KeyValuePair {
     key: string;
     value: string;
     enabled: boolean;
+    isSecret?: boolean;
 }
 
 export type RequestBodyType = 'none' | 'json' | 'text' | 'form';
