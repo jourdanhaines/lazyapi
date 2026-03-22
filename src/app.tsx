@@ -8,6 +8,8 @@ import { configManager } from "./services/ConfigManager";
 import { projectManager } from "./services/ProjectManager";
 import { historyManager } from "./services/HistoryManager";
 import { themeManager } from "./services/ThemeManager";
+import { gitProjectManager } from "./services/GitProjectManager";
+import { loadDotEnv } from "./utils/dotenv";
 
 interface AppProps {
     projectName?: string;
@@ -19,7 +21,7 @@ export function App({ projectName }: AppProps) {
     const { exit } = useApp();
 
     useKeybindings(() => {
-        storageManager.flushAll().then(() => exit());
+        Promise.all([storageManager.flushAll(), gitProjectManager.flushAll()]).then(() => exit());
     });
 
     useEffect(() => {
@@ -31,11 +33,29 @@ export function App({ projectName }: AppProps) {
             store.setConfig(config);
             historyManager.setLimit(config.historyLimit);
 
+            const dotEnvVars = await loadDotEnv(process.cwd());
+            store.setDotEnvVars(dotEnvVars);
+
             // Load theme
             const theme = await themeManager.loadTheme(config.ui.theme);
             store.setTheme(theme);
 
             const projects = await projectManager.loadAll();
+
+            // Load git-based project from cwd if present
+            const gitDir = await gitProjectManager.detectGitProject(process.cwd());
+            if (gitDir) {
+                const gitProject = await gitProjectManager.loadProject(gitDir);
+                if (gitProject) {
+                    const existingIndex = projects.findIndex(p => p.id === gitProject.id);
+                    if (existingIndex >= 0) {
+                        projects[existingIndex] = gitProject;
+                    } else {
+                        projects.push(gitProject);
+                    }
+                }
+            }
+
             // Sort projects by persisted order
             if (config.projectOrder.length > 0) {
                 const orderMap = new Map(config.projectOrder.map((id, index) => [id, index]));
@@ -108,6 +128,7 @@ export function App({ projectName }: AppProps) {
     useEffect(() => {
         const cleanup = () => {
             storageManager.flushAll();
+            gitProjectManager.flushAll();
         };
         process.on('SIGINT', cleanup);
         process.on('SIGTERM', cleanup);

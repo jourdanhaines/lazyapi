@@ -2,6 +2,7 @@ import React from "react";
 import { Box, Text } from "ink";
 import { useStore } from "../../state/store";
 import type { KeyValuePair } from "../../types/request";
+import { highlightVariables } from "../../utils/syntax";
 
 interface Props {
     pairs: KeyValuePair[];
@@ -43,9 +44,15 @@ export function KeyValueEditor({ pairs, selectedIndex, scrollOffset, visibleCoun
 
                         <Text color="gray"> = </Text>
 
-                        <Text color={pair.enabled ? undefined : 'gray'} strikethrough={!pair.enabled}>
-                            {pair.value || '<value>'}
-                        </Text>
+                        {pair.enabled && /\{\{[^}]+\}\}/.test(pair.value) && (
+                            <Text>{highlightVariables(pair.value)}</Text>
+                        )}
+
+                        {!(pair.enabled && /\{\{[^}]+\}\}/.test(pair.value)) && (
+                            <Text color={pair.enabled ? undefined : 'gray'} strikethrough={!pair.enabled}>
+                                {pair.value || '<value>'}
+                            </Text>
+                        )}
 
                         {!pair.enabled && <Text color="gray"> (disabled)</Text>}
                     </Box>

@@ -13,6 +13,8 @@ import type { RequestItem, RequestFolder, HttpMethod, KeyValuePair, RequestBodyT
 import { HTTP_METHODS } from "../types/request";
 import { copyToClipboard } from "../utils/clipboard";
 import { formatDuration } from "../utils/format";
+import { buildVariableContext, resolveRequest, extractCrossRequestRefs, createCrossRequestResolver } from "../utils/variables";
+import { findNodeByName } from "../utils/tree";
 import { VERSION } from "../version";
 
 const DEFAULT_HEADERS: KeyValuePair[] = [
@@ -58,6 +60,10 @@ export function useKeybindings(onQuit: () => void) {
         if (input === '2') { store.setFocusedPanel('requests'); return; }
         if (input === '3') { store.setFocusedPanel('editor'); return; }
         if (input === '4') { store.setFocusedPanel('response'); return; }
+        if (input === 'E') {
+            openEnvironmentModal(store);
+            return;
+        }
         if (input === '?') {
             store.openModal({
                 type: 'help',
@@ -806,10 +812,38 @@ async function sendRequest(store: ReturnType<typeof useStore.getState>) {
     store.setLoading(true);
     store.setError(null);
 
+    const env = store.getActiveEnvironment();
+    const baseUrl = env?.baseUrl || project.baseUrl;
+    const defaultHeaders = [
+        ...project.defaultHeaders,
+        ...(env?.defaultHeaders ?? []),
+    ];
+
+    const variableContext = buildVariableContext(env?.variables ?? [], store.dotEnvVars);
+
+    const refNames = extractCrossRequestRefs(request);
+    const historyCache = new Map<string, import("../types/response").ResponseEntry[]>();
+    await Promise.all(refNames.map(async (name) => {
+        const node = findNodeByName(project.collection, name);
+        if (node) {
+            const entries = await historyManager.load(node.id);
+            historyCache.set(name, entries);
+        }
+    }));
+    const crossResolver = refNames.length > 0
+        ? createCrossRequestResolver(project.collection, historyCache)
+        : undefined;
+
+    const { resolved, unresolvedVars } = resolveRequest(request, variableContext, crossResolver);
+
+    if (unresolvedVars.length > 0) {
+        store.setStatusMessage(`Unresolved: ${unresolvedVars.join(', ')}`);
+    }
+
     try {
-        const response = await requestExecutor.execute(request, {
-            baseUrl: project.baseUrl,
-            defaultHeaders: project.defaultHeaders,
+        const response = await requestExecutor.execute(resolved, {
+            baseUrl,
+            defaultHeaders,
             timeout: store.config.requestTimeout,
         });
 
@@ -829,6 +863,20 @@ function openSettingsModal(store: ReturnType<typeof useStore.getState>) {
     store.openModal({
         type: 'settings',
         title: 'Settings',
+        onConfirm: () => {},
+        onCancel: () => {},
+    });
+}
+
+function openEnvironmentModal(store: ReturnType<typeof useStore.getState>) {
+    const project = store.getActiveProject();
+    if (!project) {
+        store.setStatusMessage('No active project');
+        return;
+    }
+    store.openModal({
+        type: 'environment',
+        title: 'Environments',
         onConfirm: () => {},
         onCancel: () => {},
     });

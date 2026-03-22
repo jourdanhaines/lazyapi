@@ -30,6 +30,17 @@ export function findNode(nodes: RequestTreeNode[], id: string): RequestTreeNode 
     return null;
 }
 
+export function findNodeByName(nodes: RequestTreeNode[], name: string): RequestItem | null {
+    for (const node of nodes) {
+        if (node.type === 'request' && node.name === name) return node;
+        if (node.type === 'folder') {
+            const found = findNodeByName(node.children, name);
+            if (found) return found;
+        }
+    }
+    return null;
+}
+
 export function insertNode(nodes: RequestTreeNode[], parentId: string | null, newNode: RequestTreeNode): RequestTreeNode[] {
     if (parentId === null) {
         return [...nodes, newNode];

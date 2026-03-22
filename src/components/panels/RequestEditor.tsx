@@ -8,6 +8,7 @@ import { TabBar } from "../shared/TabBar";
 import { KeyValueEditor } from "../shared/KeyValueEditor";
 import { ContentViewer } from "../shared/ContentViewer";
 import { MultiLineEditor } from "../shared/MultiLineEditor";
+import { highlightVariables } from "../../utils/syntax";
 import { MethodBadge } from "../shared/MethodBadge";
 import { EmptyState } from "./EmptyState";
 import { projectManager } from "../../services/ProjectManager";
@@ -119,7 +120,9 @@ export function RequestEditor({ height }: Props) {
                                     </Box>
                                 ) : (
                                     <Text>
-                                        {` ${request.url || 'Enter URL...'}`.padEnd(Math.max(1, urlWidth))}
+                                        {/\{\{[^}]+\}\}/.test(request.url)
+                                            ? ` ${highlightVariables(request.url)}`
+                                            : ` ${request.url || 'Enter URL...'}`.padEnd(Math.max(1, urlWidth))}
                                     </Text>
                                 )}
                             </Box>

@@ -2,7 +2,7 @@ import chalk from "chalk";
 
 export interface Token {
     text: string;
-    color?: "cyan" | "green" | "yellow" | "magenta" | "gray";
+    color?: "cyan" | "green" | "yellow" | "magenta" | "gray" | "variable";
 }
 
 const COLOR_FNS = {
@@ -11,6 +11,7 @@ const COLOR_FNS = {
     yellow: chalk.yellow,
     magenta: chalk.magenta,
     gray: chalk.gray,
+    variable: chalk.hex('#ff79c6').bold,
 } as const;
 
 export function tokenizeJsonLine(line: string): Token[] {
@@ -19,6 +20,14 @@ export function tokenizeJsonLine(line: string): Token[] {
 
     while (remaining.length > 0) {
         let match: RegExpMatchArray | null;
+
+        // Variable reference {{...}}
+        match = remaining.match(/^\{\{[^}]+\}\}/);
+        if (match) {
+            tokens.push({ text: match[0], color: "variable" });
+            remaining = remaining.slice(match[0].length);
+            continue;
+        }
 
         // String — check if key (followed by colon) or value
         match = remaining.match(/^"(?:[^"\\]|\\.)*"/);
@@ -118,4 +127,8 @@ export function highlightTokensWithCursor(
     }
 
     return result;
+}
+
+export function highlightVariables(text: string): string {
+    return text.replace(/\{\{([^}]+)\}\}/g, (match) => COLOR_FNS.variable(match));
 }
