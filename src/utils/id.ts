@@ -19,3 +19,7 @@ export function folderId(): string {
 export function responseId(): string {
     return generateId('resp');
 }
+
+export function environmentId(): string {
+    return generateId('env');
+}

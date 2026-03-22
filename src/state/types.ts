@@ -1,5 +1,6 @@
 import type { PanelId, EditorTab, ResponseTab, ModalState } from "../types/ui";
 import type { Project } from "../types/project";
+import type { Environment } from "../types/environment";
 import type { RequestItem, RequestTreeNode } from "../types/request";
 import type { ResponseEntry } from "../types/response";
 import type { GlobalConfig } from "../types/config";
@@ -35,6 +36,8 @@ export interface ProjectSlice {
     deleteProject: (id: string) => void;
     swapProjects: (indexA: number, indexB: number) => void;
     getActiveProject: () => Project | null;
+    setActiveEnvironment: (projectId: string, envId: string | null) => void;
+    getActiveEnvironment: () => Environment | null;
 }
 
 export interface RequestSlice {
@@ -59,8 +62,11 @@ export interface ResponseSlice {
 
 export interface ConfigSlice {
     config: GlobalConfig;
+    dotEnvVars: Record<string, string>;
+    dotEnvLoaded: boolean;
     setConfig: (config: GlobalConfig) => void;
     updateConfig: (updates: Partial<GlobalConfig>) => void;
+    setDotEnvVars: (vars: Record<string, string>) => void;
 }
 
 export interface ThemeSlice {

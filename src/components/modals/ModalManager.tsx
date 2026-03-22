@@ -5,6 +5,7 @@ import { ConfirmModal } from "./ConfirmModal";
 import { SelectModal } from "./SelectModal";
 import { HelpModal } from "./HelpModal";
 import { SettingsModal } from "./SettingsModal";
+import { EnvironmentModal } from "./EnvironmentModal";
 
 export function ModalManager() {
     const modal = useStore(s => s.modal);
@@ -67,6 +68,12 @@ export function ModalManager() {
         case 'settings':
             return (
                 <SettingsModal
+                    onClose={handleCancel}
+                />
+            );
+        case 'environment':
+            return (
+                <EnvironmentModal
                     onClose={handleCancel}
                 />
             );

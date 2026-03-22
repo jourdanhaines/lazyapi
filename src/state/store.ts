@@ -59,6 +59,16 @@ export const useStore = create<StoreState>((set, get) => ({
         const { projects, activeProjectId } = get();
         return projects.find(p => p.id === activeProjectId) ?? null;
     },
+    setActiveEnvironment: (projectId, envId) => set(state => ({
+        projects: state.projects.map(p =>
+            p.id === projectId ? { ...p, activeEnvironmentId: envId } : p
+        ),
+    })),
+    getActiveEnvironment: () => {
+        const project = get().getActiveProject();
+        if (!project?.activeEnvironmentId) return null;
+        return project.environments.find(e => e.id === project.activeEnvironmentId) ?? null;
+    },
 
     // Request Slice
     selectedRequestId: null,
@@ -94,11 +104,17 @@ export const useStore = create<StoreState>((set, get) => ({
 
     // Config Slice
     config: DEFAULT_CONFIG,
+    dotEnvVars: {},
+    dotEnvLoaded: false,
 
     setConfig: (config) => set({ config }),
     updateConfig: (updates) => set(state => ({
         config: { ...state.config, ...updates },
     })),
+    setDotEnvVars: (vars) => set({
+        dotEnvVars: vars,
+        dotEnvLoaded: Object.keys(vars).length > 0,
+    }),
 
     // Theme Slice
     theme: BUILTIN_THEMES[DEFAULT_THEME_NAME],

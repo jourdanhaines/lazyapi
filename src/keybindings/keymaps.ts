@@ -10,6 +10,7 @@ export const DEFAULT_KEYMAP: KeyMap = {
         { key: '2', label: '2', description: 'Requests', action: 'focusRequests' },
         { key: '3', label: '3', description: 'Editor', action: 'focusEditor' },
         { key: '4', label: '4', description: 'Response', action: 'focusResponse' },
+        { key: 'E', label: 'E', description: 'Environments', action: 'openEnvironments' },
         { key: '?', label: '?', description: 'Help', action: 'showHelp' },
         { key: 'q', label: 'q', description: 'Quit', action: 'quit' },
     ],

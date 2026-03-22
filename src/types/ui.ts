@@ -7,7 +7,7 @@ export const PANEL_ORDER: PanelId[] = ['projects', 'requests', 'editor', 'respon
 export type EditorTab = 'url' | 'params' | 'headers' | 'body';
 export type ResponseTab = 'body' | 'headers' | 'timing' | 'history';
 
-export type ModalType = 'input' | 'confirm' | 'select' | 'help' | 'settings';
+export type ModalType = 'input' | 'confirm' | 'select' | 'help' | 'settings' | 'environment';
 
 export interface ModalState {
     type: ModalType;
