@@ -7,10 +7,8 @@ export function StatusBar() {
     const focusedPanel = useStore(s => s.focusedPanel);
     const statusMessage = useStore(s => s.statusMessage);
     const setStatusMessage = useStore(s => s.setStatusMessage);
-    const activeEnv = useStore(s => s.getActiveEnvironment());
     const dotEnvLoaded = useStore(s => s.dotEnvLoaded);
     const dotEnvCount = useStore(s => Object.keys(s.dotEnvVars).length);
-    const theme = useStore(s => s.theme);
 
     useEffect(() => {
         if (!statusMessage) return;
@@ -20,18 +18,13 @@ export function StatusBar() {
     }, [statusMessage, setStatusMessage]);
 
     const hints = keybindingManager.getHintsForPanel(focusedPanel);
-    const envBadge = activeEnv ? `[${activeEnv.name}]` : '[no env]';
-    const dotEnvBadge = dotEnvLoaded ? ` [.env: ${dotEnvCount}]` : '';
-    const prefix = `${envBadge}${dotEnvBadge}  `;
+    const content = statusMessage ?? hints;
 
     return (
         <Box height={1} paddingX={1}>
-            <Text>
-                <Text color={activeEnv ? theme.colors.focusedBorder : 'gray'}>{envBadge}</Text>
-                {dotEnvLoaded && <Text color="gray"> [.env: {dotEnvCount}]</Text>}
-                <Text>  </Text>
-                {statusMessage && <Text color="green">{statusMessage}</Text>}
-                {!statusMessage && <Text color="gray">{hints}</Text>}
+            <Text wrap="truncate-end">
+                {dotEnvLoaded && <Text color="gray">[.env: {dotEnvCount}] </Text>}
+                <Text color={statusMessage ? 'green' : 'gray'}>{content}</Text>
             </Text>
         </Box>
     );

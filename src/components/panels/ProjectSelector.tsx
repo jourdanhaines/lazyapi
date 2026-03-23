@@ -26,13 +26,20 @@ export function ProjectSelector({ height }: Props) {
         return selectedIndex - visible + 1;
     }, [selectedIndex, height]);
 
+    const theme = useStore(s => s.theme);
+
     const renderItem = useCallback((project: Project, _index: number, isSelected: boolean) => {
+        const envName = project.activeEnvironmentId
+            ? project.environments.find(e => e.id === project.activeEnvironmentId)?.name
+            : null;
+
         return (
-            <Text color={isSelected ? '#FFFFFF' : undefined}>
-                {project.name}
+            <Text>
+                <Text color={isSelected ? '#FFFFFF' : undefined}>{project.name}</Text>
+                {envName && <Text color={theme.colors.focusedBorder}> [{envName}]</Text>}
             </Text>
         );
-    }, []);
+    }, [theme]);
 
     return (
         <ScrollableList
