@@ -106,7 +106,13 @@ export function App({ projectName }: AppProps) {
             const { activeProjectId, selectedRequestId } = state;
             if (selectedRequestId === prevRequestId) return;
             prevRequestId = selectedRequestId;
-            if (!activeProjectId || !selectedRequestId) return;
+            if (!activeProjectId || !selectedRequestId) {
+                const current = useStore.getState();
+                current.setCurrentResponse(null);
+                current.setResponseHistory([]);
+                current.setError(null);
+                return;
+            }
 
             configManager.load().then((config) => {
                 config.lastRequestMap = config.lastRequestMap ?? {};
