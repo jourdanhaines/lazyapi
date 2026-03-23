@@ -5,6 +5,14 @@ import type { RequestItem, RequestTreeNode } from "../types/request";
 import type { ResponseEntry } from "../types/response";
 import type { GlobalConfig } from "../types/config";
 import type { Theme } from "../types/theme";
+import type { FuzzyMatch } from "../utils/fuzzyMatch";
+
+export interface AutocompleteState {
+    matches: FuzzyMatch[];
+    selectedIndex: number;
+    row: number;
+    col: number;
+}
 
 export interface UISlice {
     focusedPanel: PanelId;
@@ -24,6 +32,8 @@ export interface UISlice {
     closeModal: () => void;
     setInputMode: (active: boolean) => void;
     setStatusMessage: (message: string | null) => void;
+    autocomplete: AutocompleteState | null;
+    setAutocomplete: (state: AutocompleteState | null) => void;
 }
 
 export interface ProjectSlice {

@@ -32,6 +32,8 @@ export const useStore = create<StoreState>((set, get) => ({
     closeModal: () => set({ modal: null }),
     setInputMode: (active) => set({ inputMode: active }),
     setStatusMessage: (message) => set({ statusMessage: message }),
+    autocomplete: null,
+    setAutocomplete: (autocomplete) => set({ autocomplete }),
 
     // Project Slice
     projects: [],

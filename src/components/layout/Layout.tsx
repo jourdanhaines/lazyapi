@@ -4,6 +4,7 @@ import { Sidebar } from "./Sidebar";
 import { MainContent } from "./MainContent";
 import { StatusBar } from "./StatusBar";
 import { ModalManager } from "../modals/ModalManager";
+import { AutocompleteDropdown } from "../shared/AutocompleteDropdown";
 import { useTerminalSize } from "../../hooks/useTerminalSize";
 import { useStore } from "../../state/store";
 
@@ -41,6 +42,8 @@ export function Layout() {
         };
     }, [showAppBackground, appBackground]);
 
+    const autocomplete = useStore(s => s.autocomplete);
+
     return (
         <Box flexDirection="column" width={columns} height={rows}>
             <Box flexGrow={1}>
@@ -51,6 +54,15 @@ export function Layout() {
             <StatusBar />
 
             <ModalManager />
+
+            {autocomplete && (
+                <AutocompleteDropdown
+                    matches={autocomplete.matches}
+                    selectedIndex={autocomplete.selectedIndex}
+                    row={autocomplete.row}
+                    col={autocomplete.col}
+                />
+            )}
         </Box>
     );
 }

@@ -7,10 +7,11 @@ interface Props {
     matches: FuzzyMatch[];
     selectedIndex: number;
     maxVisible?: number;
-    offsetLeft?: number;
+    row?: number;
+    col?: number;
 }
 
-export function AutocompleteDropdown({ matches, selectedIndex, maxVisible = 5, offsetLeft = 0 }: Props) {
+export function AutocompleteDropdown({ matches, selectedIndex, maxVisible = 5, row = 0, col = 0 }: Props) {
     const theme = useStore(s => s.theme);
 
     if (matches.length === 0) return null;
@@ -25,8 +26,8 @@ export function AutocompleteDropdown({ matches, selectedIndex, maxVisible = 5, o
     return (
         <Box
             position="absolute"
-            marginTop={1}
-            marginLeft={offsetLeft}
+            marginTop={row}
+            marginLeft={col}
             flexDirection="column"
         >
             {start > 0 && (

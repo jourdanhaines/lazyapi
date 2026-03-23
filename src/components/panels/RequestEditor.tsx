@@ -125,6 +125,8 @@ export function RequestEditor({ height }: Props) {
                                             defaultValue={request.url}
                                             placeholder="Enter URL..."
                                             variableContext={variableContext}
+                                            dropdownRow={4}
+                                            dropdownCol={sidebarWidth + 12}
                                             onChange={(value) => { urlRef.current = value; }}
                                             onSubmit={handleUrlSubmit}
                                         />
