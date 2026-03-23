@@ -21,22 +21,18 @@ export function StatusBar() {
 
     const hints = keybindingManager.getHintsForPanel(focusedPanel);
     const envBadge = activeEnv ? `[${activeEnv.name}]` : '[no env]';
+    const dotEnvBadge = dotEnvLoaded ? ` [.env: ${dotEnvCount}]` : '';
+    const prefix = `${envBadge}${dotEnvBadge}  `;
 
     return (
         <Box height={1} paddingX={1}>
-            <Box marginRight={1}>
+            <Text>
                 <Text color={activeEnv ? theme.colors.focusedBorder : 'gray'}>{envBadge}</Text>
-            </Box>
-
-            {dotEnvLoaded && (
-                <Box marginRight={1}>
-                    <Text color="gray">[.env: {dotEnvCount}]</Text>
-                </Box>
-            )}
-
-            {statusMessage && <Text color="green">{statusMessage}</Text>}
-
-            {!statusMessage && <Text color="gray">{hints}</Text>}
+                {dotEnvLoaded && <Text color="gray"> [.env: {dotEnvCount}]</Text>}
+                <Text>  </Text>
+                {statusMessage && <Text color="green">{statusMessage}</Text>}
+                {!statusMessage && <Text color="gray">{hints}</Text>}
+            </Text>
         </Box>
     );
 }
