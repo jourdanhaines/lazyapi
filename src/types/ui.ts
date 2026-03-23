@@ -15,6 +15,7 @@ export interface ModalState {
     message?: string;
     defaultValue?: string;
     options?: string[];
+    variableContext?: Record<string, string>;
     onConfirm: (value: string) => void;
     onCancel: () => void;
     onHighlight?: (value: string) => void;

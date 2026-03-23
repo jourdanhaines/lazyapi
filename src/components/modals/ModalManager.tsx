@@ -34,6 +34,7 @@ export function ModalManager() {
                     title={modal.title}
                     message={modal.message}
                     defaultValue={modal.defaultValue}
+                    variableContext={modal.variableContext}
                     onConfirm={handleConfirm}
                     onCancel={handleCancel}
                 />

@@ -1,6 +1,7 @@
 import React, { useRef } from "react";
 import { Box, Text, useInput } from "ink";
 import { TextInputField } from "../shared/TextInputField";
+import { VariableTextInput } from "../shared/VariableTextInput";
 import { Modal } from "./Modal";
 import { useStore } from "../../state/store";
 
@@ -8,11 +9,12 @@ interface Props {
     title: string;
     message?: string;
     defaultValue?: string;
+    variableContext?: Record<string, string>;
     onConfirm: (value: string) => void;
     onCancel: () => void;
 }
 
-export function InputModal({ title, message, defaultValue = '', onConfirm, onCancel }: Props) {
+export function InputModal({ title, message, defaultValue = '', variableContext, onConfirm, onCancel }: Props) {
     const valueRef = useRef(defaultValue);
     const theme = useStore(s => s.theme);
 
@@ -30,13 +32,24 @@ export function InputModal({ title, message, defaultValue = '', onConfirm, onCan
                 </Box>
             )}
 
-            <Box>
-                <Text color={theme.colors.modalTitleText}>{'> '}</Text>
-                <TextInputField
-                    defaultValue={defaultValue}
-                    onChange={(val) => (valueRef.current = val)}
-                    onSubmit={() => onConfirm(valueRef.current)}
-                />
+            <Box flexDirection="column">
+                <Box>
+                    <Text color={theme.colors.modalTitleText}>{'> '}</Text>
+                    {variableContext ? (
+                        <VariableTextInput
+                            defaultValue={defaultValue}
+                            variableContext={variableContext}
+                            onChange={(val) => (valueRef.current = val)}
+                            onSubmit={() => onConfirm(valueRef.current)}
+                        />
+                    ) : (
+                        <TextInputField
+                            defaultValue={defaultValue}
+                            onChange={(val) => (valueRef.current = val)}
+                            onSubmit={() => onConfirm(valueRef.current)}
+                        />
+                    )}
+                </Box>
             </Box>
 
             <Box marginTop={1}>
