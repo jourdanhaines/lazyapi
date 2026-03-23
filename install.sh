@@ -2,7 +2,7 @@
 set -e
 
 REPO="jourdanhaines/lazyapi"
-INSTALL_DIR="${INSTALL_DIR:-/usr/local/bin}"
+INSTALL_DIR="${INSTALL_DIR:-/usr/bin}"
 
 # Detect OS
 case "$(uname -s)" in
