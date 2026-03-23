@@ -581,6 +581,7 @@ function handleEditorKeys(input: string, key: any, store: ReturnType<typeof useS
                     type: 'input',
                     title: 'New Entry',
                     message: `Value for "${entryKey.trim()}":`,
+                    variableContext: getVariableContext(useStore.getState()),
                     onConfirm: (entryValue) => {
                         const newPair: KeyValuePair = { key: entryKey.trim(), value: entryValue, enabled: true };
                         const currentPairs = getEditorPairs(useStore.getState());
@@ -613,6 +614,7 @@ function handleEditorKeys(input: string, key: any, store: ReturnType<typeof useS
                     title: 'Edit Value',
                     message: `Value for "${newKey}":`,
                     defaultValue: pair.value,
+                    variableContext: getVariableContext(useStore.getState()),
                     onConfirm: (newValue) => {
                         const currentPairs = getEditorPairs(useStore.getState());
                         if (!currentPairs) return;
@@ -813,7 +815,6 @@ async function sendRequest(store: ReturnType<typeof useStore.getState>) {
     store.setError(null);
 
     const env = store.getActiveEnvironment();
-    const baseUrl = env?.baseUrl || project.baseUrl;
     const defaultHeaders = [
         ...project.defaultHeaders,
         ...(env?.defaultHeaders ?? []),
@@ -842,7 +843,6 @@ async function sendRequest(store: ReturnType<typeof useStore.getState>) {
 
     try {
         const response = await requestExecutor.execute(resolved, {
-            baseUrl,
             defaultHeaders,
             timeout: store.config.requestTimeout,
         });
@@ -857,6 +857,11 @@ async function sendRequest(store: ReturnType<typeof useStore.getState>) {
         store.setLoading(false);
         store.setError(err instanceof Error ? err.message : 'Unknown error');
     }
+}
+
+function getVariableContext(store: ReturnType<typeof useStore.getState>): Record<string, string> {
+    const env = store.getActiveEnvironment();
+    return buildVariableContext(env?.variables ?? [], store.dotEnvVars);
 }
 
 function openSettingsModal(store: ReturnType<typeof useStore.getState>) {

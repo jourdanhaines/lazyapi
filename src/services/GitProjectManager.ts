@@ -3,6 +3,7 @@ import { join, dirname } from "node:path";
 import type { Project } from "../types/project";
 import type { Environment } from "../types/environment";
 import type { KeyValuePair } from "../types/request";
+import { environmentId } from "../utils/id";
 
 const LAZYAPI_DIR = '.lazyapi';
 const PROJECT_FILE = 'project.json';
@@ -33,10 +34,30 @@ export class GitProjectManager {
     async loadProject(lazyapiDir: string): Promise<Project | null> {
         try {
             const raw = JSON.parse(await readFile(join(lazyapiDir, PROJECT_FILE), 'utf-8'));
+
+            const environments = (raw.environments ?? []) as Environment[];
+            let activeEnvironmentId = (raw.activeEnvironmentId ?? null) as string | null;
+
+            const baseUrl = raw.baseUrl as string | undefined;
+            if (baseUrl) {
+                let defaultEnv = environments.find(e => e.name === 'default');
+                if (!defaultEnv) {
+                    defaultEnv = { id: environmentId(), name: 'default', variables: [] };
+                    environments.push(defaultEnv);
+                }
+                const hasBaseUrl = defaultEnv.variables.some(v => v.key === 'BASE_URL');
+                if (!hasBaseUrl) {
+                    defaultEnv.variables.push({ key: 'BASE_URL', value: baseUrl, enabled: true });
+                }
+                if (!activeEnvironmentId) {
+                    activeEnvironmentId = defaultEnv.id;
+                }
+            }
+
             const project: Project = {
                 ...raw,
-                environments: raw.environments ?? [],
-                activeEnvironmentId: raw.activeEnvironmentId ?? null,
+                environments,
+                activeEnvironmentId,
                 storageMode: 'git',
                 gitDir: lazyapiDir,
             };

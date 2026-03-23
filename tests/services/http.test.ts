@@ -3,12 +3,8 @@ import { buildUrl, normalizeHeaders, parseUrl } from "../../src/utils/http";
 
 describe('http utils', () => {
     describe('buildUrl', () => {
-        it('should combine base and path', () => {
-            expect(buildUrl('https://api.example.com', '/users', [])).toBe('https://api.example.com/users');
-        });
-
-        it('should handle base with trailing slash', () => {
-            expect(buildUrl('https://api.example.com/', '/users', [])).toBe('https://api.example.com//users');
+        it('should return url as-is with no params', () => {
+            expect(buildUrl('https://api.example.com/users', [])).toBe('https://api.example.com/users');
         });
 
         it('should add query params', () => {
@@ -16,16 +12,14 @@ describe('http utils', () => {
                 { key: 'page', value: '1', enabled: true },
                 { key: 'limit', value: '10', enabled: true },
             ];
-            const result = buildUrl('https://api.example.com', '/users', params);
+            const result = buildUrl('https://api.example.com/users', params);
             expect(result).toBe('https://api.example.com/users?page=1&limit=10');
         });
 
-        it('should use full URL in path when base is empty', () => {
-            expect(buildUrl('', 'https://api.example.com/health', [])).toBe('https://api.example.com/health');
-        });
-
-        it('should use full URL in path even when base is set', () => {
-            expect(buildUrl('https://other.com', 'https://api.example.com/health', [])).toBe('https://api.example.com/health');
+        it('should append to existing query params', () => {
+            const params = [{ key: 'limit', value: '10', enabled: true }];
+            const result = buildUrl('https://api.example.com/users?page=1', params);
+            expect(result).toBe('https://api.example.com/users?page=1&limit=10');
         });
 
         it('should skip disabled params', () => {
@@ -33,7 +27,7 @@ describe('http utils', () => {
                 { key: 'page', value: '1', enabled: true },
                 { key: 'debug', value: 'true', enabled: false },
             ];
-            const result = buildUrl('https://api.example.com', '/users', params);
+            const result = buildUrl('https://api.example.com/users', params);
             expect(result).toBe('https://api.example.com/users?page=1');
         });
     });

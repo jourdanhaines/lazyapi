@@ -6,7 +6,6 @@ export type StorageMode = 'local' | 'git';
 export interface Project {
     id: string;
     name: string;
-    baseUrl: string;
     defaultHeaders: KeyValuePair[];
     collection: RequestTreeNode[];
     environments: Environment[];

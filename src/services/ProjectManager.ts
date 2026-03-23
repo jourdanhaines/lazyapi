@@ -1,7 +1,8 @@
 import { storageManager } from "./StorageManager";
 import { gitProjectManager } from "./GitProjectManager";
 import type { Project } from "../types/project";
-import { projectId } from "../utils/id";
+import type { Environment } from "../types/environment";
+import { projectId, environmentId } from "../utils/id";
 
 export class ProjectManager {
     async loadAll(): Promise<Project[]> {
@@ -17,10 +18,30 @@ export class ProjectManager {
     }
 
     private migrate(raw: Record<string, unknown>): Project {
+        const environments = (raw.environments ?? []) as Environment[];
+        let activeEnvironmentId = (raw.activeEnvironmentId ?? null) as string | null;
+
+        const baseUrl = raw.baseUrl as string | undefined;
+        if (baseUrl) {
+            let defaultEnv = environments.find(e => e.name === 'default');
+            if (!defaultEnv) {
+                defaultEnv = { id: environmentId(), name: 'default', variables: [] };
+                environments.push(defaultEnv);
+            }
+            const hasBaseUrl = defaultEnv.variables.some(v => v.key === 'BASE_URL');
+            if (!hasBaseUrl) {
+                defaultEnv.variables.push({ key: 'BASE_URL', value: baseUrl, enabled: true });
+            }
+            if (!activeEnvironmentId) {
+                activeEnvironmentId = defaultEnv.id;
+            }
+        }
+        delete raw.baseUrl;
+
         return {
             ...raw,
-            environments: raw.environments ?? [],
-            activeEnvironmentId: raw.activeEnvironmentId ?? null,
+            environments,
+            activeEnvironmentId,
             storageMode: raw.storageMode ?? 'local',
         } as Project;
     }
@@ -41,11 +62,10 @@ export class ProjectManager {
         }
     }
 
-    async create(name: string, baseUrl = ''): Promise<Project> {
+    async create(name: string): Promise<Project> {
         const project: Project = {
             id: projectId(),
             name,
-            baseUrl,
             defaultHeaders: [],
             collection: [],
             environments: [],

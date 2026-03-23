@@ -1,28 +1,13 @@
 import type { KeyValuePair } from "../types/request";
 
-export function buildUrl(base: string, path: string, params: KeyValuePair[]): string {
-    let url: string;
-    if (path && (path.startsWith('http://') || path.startsWith('https://'))) {
-        url = path;
-    } else if (!base) {
-        url = path;
-    } else {
-        url = base;
-        if (path) {
-            if (!base.endsWith('/') && !path.startsWith('/')) {
-                url += '/';
-            }
-            url += path;
-        }
-    }
-
+export function buildUrl(url: string, params: KeyValuePair[]): string {
     const enabledParams = params.filter(p => p.enabled && p.key);
     if (enabledParams.length > 0) {
         const searchParams = new URLSearchParams();
         for (const p of enabledParams) {
             searchParams.append(p.key, p.value);
         }
-        url += '?' + searchParams.toString();
+        url += (url.includes('?') ? '&' : '?') + searchParams.toString();
     }
 
     return url;

@@ -8,13 +8,13 @@ import { environmentId } from "../../utils/id";
 import type { Environment } from "../../types/environment";
 import type { KeyValuePair } from "../../types/request";
 
-const ENV_TABS = ['list', 'variables', 'overrides'] as const;
+const ENV_TABS = ['list', 'variables', 'headers'] as const;
 type EnvTab = (typeof ENV_TABS)[number];
 
 const TAB_LABELS: Record<EnvTab, string> = {
     list: 'Environments',
     variables: 'Variables',
-    overrides: 'Overrides',
+    headers: 'Headers',
 };
 
 type InputTarget =
@@ -22,8 +22,7 @@ type InputTarget =
     | { type: 'varKey'; index: number }
     | { type: 'varValue'; index: number }
     | { type: 'headerKey'; index: number }
-    | { type: 'headerValue'; index: number }
-    | { type: 'baseUrl' };
+    | { type: 'headerValue'; index: number };
 
 interface Props {
     onClose: () => void;
@@ -36,7 +35,6 @@ export function EnvironmentModal({ onClose }: Props) {
     const [envIndex, setEnvIndex] = useState(0);
     const [varIndex, setVarIndex] = useState(0);
     const [headerIndex, setHeaderIndex] = useState(0);
-    const [overrideField, setOverrideField] = useState<'baseUrl' | 'headers'>('baseUrl');
     const [inputTarget, setInputTarget] = useState<InputTarget | null>(null);
     const [inputDefault, setInputDefault] = useState('');
 
@@ -140,12 +138,6 @@ export function EnvironmentModal({ onClose }: Props) {
                 updateEnvironment(env.id, { defaultHeaders: newHeaders });
                 break;
             }
-            case 'baseUrl': {
-                const env = getSelectedEnv();
-                if (!env) break;
-                updateEnvironment(env.id, { baseUrl: value || undefined });
-                break;
-            }
         }
 
         saveProject();
@@ -185,8 +177,8 @@ export function EnvironmentModal({ onClose }: Props) {
             handleListKeys(input, key);
         } else if (activeTab === 'variables') {
             handleVariableKeys(input, key);
-        } else if (activeTab === 'overrides') {
-            handleOverrideKeys(input, key);
+        } else if (activeTab === 'headers') {
+            handleHeaderKeys(input, key);
         }
     });
 
@@ -258,51 +250,34 @@ export function EnvironmentModal({ onClose }: Props) {
         }
     }
 
-    function handleOverrideKeys(input: string, key: any) {
+    function handleHeaderKeys(input: string, key: any) {
         const env = getSelectedEnv();
         if (!env) return;
         const headers = env.defaultHeaders ?? [];
 
         if (input === 'j' || key.downArrow) {
-            if (overrideField === 'baseUrl') {
-                if (headers.length > 0) {
-                    setOverrideField('headers');
-                    setHeaderIndex(0);
-                }
-            } else {
-                setHeaderIndex(prev => Math.min(headers.length - 1, prev + 1));
-            }
+            setHeaderIndex(prev => Math.min(headers.length - 1, prev + 1));
         } else if (input === 'k' || key.upArrow) {
-            if (overrideField === 'headers' && headerIndex === 0) {
-                setOverrideField('baseUrl');
-            } else if (overrideField === 'headers') {
-                setHeaderIndex(prev => Math.max(0, prev - 1));
-            }
-        } else if (input === 'e') {
-            if (overrideField === 'baseUrl') {
-                setInputTarget({ type: 'baseUrl' });
-                setInputDefault(env.baseUrl ?? '');
-            } else if (headers[headerIndex]) {
-                setInputTarget({ type: 'headerKey', index: headerIndex });
-                setInputDefault(headers[headerIndex].key);
-            }
-        } else if (input === 'v' && overrideField === 'headers' && headers[headerIndex]) {
+            setHeaderIndex(prev => Math.max(0, prev - 1));
+        } else if (input === 'e' && headers[headerIndex]) {
+            setInputTarget({ type: 'headerKey', index: headerIndex });
+            setInputDefault(headers[headerIndex].key);
+        } else if (input === 'v' && headers[headerIndex]) {
             setInputTarget({ type: 'headerValue', index: headerIndex });
             setInputDefault(headers[headerIndex].value);
-        } else if (input === 'a' && overrideField === 'headers') {
+        } else if (input === 'a') {
             setInputTarget({ type: 'headerKey', index: headers.length });
             setInputDefault('');
-        } else if (input === ' ' && overrideField === 'headers' && headers[headerIndex]) {
+        } else if (input === ' ' && headers[headerIndex]) {
             const newHeaders = headers.map((h, i) =>
                 i === headerIndex ? { ...h, enabled: !h.enabled } : h
             );
             updateEnvironment(env.id, { defaultHeaders: newHeaders });
             saveProject();
-        } else if (input === 'd' && overrideField === 'headers' && headers[headerIndex]) {
+        } else if (input === 'd' && headers[headerIndex]) {
             const newHeaders = headers.filter((_, i) => i !== headerIndex);
             updateEnvironment(env.id, { defaultHeaders: newHeaders });
             setHeaderIndex(prev => Math.max(0, Math.min(prev, newHeaders.length - 1)));
-            if (newHeaders.length === 0) setOverrideField('baseUrl');
             saveProject();
         }
     }
@@ -379,7 +354,7 @@ export function EnvironmentModal({ onClose }: Props) {
                                     </Text>
 
                                     <Text color="gray">
-                                        {' '}({env.variables.length} vars{env.baseUrl ? ', url override' : ''})
+                                        {' '}({env.variables.length} vars)
                                     </Text>
                                 </Box>
                             );
@@ -412,7 +387,7 @@ export function EnvironmentModal({ onClose }: Props) {
                     </Box>
                 )}
 
-                {activeTab === 'overrides' && (
+                {activeTab === 'headers' && (
                     <Box flexDirection="column">
                         {!selectedEnv && (
                             <Text color="gray" italic>Select an environment in the list tab first.</Text>
@@ -420,26 +395,18 @@ export function EnvironmentModal({ onClose }: Props) {
 
                         {selectedEnv && (
                             <Box flexDirection="column">
-                                <Box
-                                    backgroundColor={overrideField === 'baseUrl' ? theme.colors.selectedItemBg : undefined}
-                                >
-                                    <Text color={theme.colors.modalTitleText}>Base URL: </Text>
-                                    <Text color={theme.colors.modalText}>
-                                        {selectedEnv.baseUrl || '(not set)'}
-                                    </Text>
+                                <Box marginBottom={1}>
+                                    <Text color={theme.colors.modalTitleText} bold>{selectedEnv.name}</Text>
+                                    <Text color={theme.colors.modalHintText}> default headers</Text>
                                 </Box>
 
-                                <Box marginTop={1} flexDirection="column">
-                                    <Text color={theme.colors.modalTitleText} bold>Headers</Text>
+                                {(selectedEnv.defaultHeaders ?? []).length === 0 && (
+                                    <Text color="gray" italic>No default headers. Press 'a' to add.</Text>
+                                )}
 
-                                    {(selectedEnv.defaultHeaders ?? []).length === 0 && (
-                                        <Text color="gray" italic>No header overrides. Press 'a' to add.</Text>
-                                    )}
-
-                                    {(selectedEnv.defaultHeaders ?? []).map((h, index) =>
-                                        renderKvPair(h, index, overrideField === 'headers' && index === headerIndex)
-                                    )}
-                                </Box>
+                                {(selectedEnv.defaultHeaders ?? []).map((h, index) =>
+                                    renderKvPair(h, index, index === headerIndex)
+                                )}
                             </Box>
                         )}
                     </Box>
@@ -461,7 +428,7 @@ export function EnvironmentModal({ onClose }: Props) {
                 <Text color={theme.colors.modalHintText}>
                     {activeTab === 'list' && '[/]: tabs  j/k: navigate  a: add  e: edit  d: delete  Enter: activate  n: none  Esc: close'}
                     {activeTab === 'variables' && '[/]: tabs  j/k: navigate  a: add  e: edit key  v: edit value  d: delete  space: toggle  Esc: close'}
-                    {activeTab === 'overrides' && '[/]: tabs  j/k: navigate  e: edit  v: edit value  a: add header  d: delete  space: toggle  Esc: close'}
+                    {activeTab === 'headers' && '[/]: tabs  j/k: navigate  e: edit key  v: edit value  a: add  d: delete  space: toggle  Esc: close'}
                 </Text>
             </Box>
         </Modal>

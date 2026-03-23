@@ -4,14 +4,13 @@ import { buildUrl, normalizeHeaders } from "../utils/http";
 import { responseId } from "../utils/id";
 
 export interface ExecuteOptions {
-    baseUrl: string;
     defaultHeaders: KeyValuePair[];
     timeout: number;
 }
 
 export class RequestExecutor {
     async execute(request: RequestItem, options: ExecuteOptions): Promise<ResponseEntry> {
-        const url = buildUrl(options.baseUrl, request.url, request.params);
+        const url = buildUrl(request.url, request.params);
         const headers = {
             ...normalizeHeaders(options.defaultHeaders),
             ...normalizeHeaders(request.headers),
