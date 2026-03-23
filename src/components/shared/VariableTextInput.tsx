@@ -1,5 +1,4 @@
 import React, { useState, useMemo, useCallback } from "react";
-import { Box } from "ink";
 import { TextInputField } from "./TextInputField";
 import { AutocompleteDropdown } from "./AutocompleteDropdown";
 import { useAutocomplete } from "../../hooks/useAutocomplete";
@@ -73,7 +72,7 @@ export function VariableTextInput({ variableContext, onChange, onSubmit, ...prop
     }, [autocomplete.isOpen, autocomplete.matches, autocomplete.selectedIndex]);
 
     return (
-        <Box flexDirection="column">
+        <>
             <TextInputField
                 key={inputKey}
                 defaultValue={overrideDefault}
@@ -92,6 +91,6 @@ export function VariableTextInput({ variableContext, onChange, onSubmit, ...prop
                     selectedIndex={autocomplete.selectedIndex}
                 />
             )}
-        </Box>
+        </>
     );
 }

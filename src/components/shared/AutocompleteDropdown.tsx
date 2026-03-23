@@ -7,9 +7,10 @@ interface Props {
     matches: FuzzyMatch[];
     selectedIndex: number;
     maxVisible?: number;
+    offsetLeft?: number;
 }
 
-export function AutocompleteDropdown({ matches, selectedIndex, maxVisible = 5 }: Props) {
+export function AutocompleteDropdown({ matches, selectedIndex, maxVisible = 5, offsetLeft = 0 }: Props) {
     const theme = useStore(s => s.theme);
 
     if (matches.length === 0) return null;
@@ -18,35 +19,55 @@ export function AutocompleteDropdown({ matches, selectedIndex, maxVisible = 5 }:
     const end = Math.min(start + maxVisible, matches.length);
     const visible = matches.slice(start, end);
 
+    const maxNameLen = Math.max(...visible.map(m => m.name.length));
+    const dropdownWidth = maxNameLen + 4;
+
     return (
-        <Box flexDirection="column" marginTop={0}>
-            {start > 0 && <Text color="gray">  ↑ {start} more</Text>}
+        <Box
+            position="absolute"
+            marginTop={1}
+            marginLeft={offsetLeft}
+            flexDirection="column"
+        >
+            {start > 0 && (
+                <Box backgroundColor={theme.colors.modalBackground} width={dropdownWidth}>
+                    <Text color="gray"> ↑ {start} more</Text>
+                </Box>
+            )}
 
             {visible.map((match, index) => {
                 const actualIndex = start + index;
                 const isSelected = actualIndex === selectedIndex;
                 const matchSet = new Set(match.matchedIndices);
+                const bg = isSelected ? theme.colors.selectedItemBg : theme.colors.modalBackground;
 
                 return (
                     <Box
                         key={match.name}
-                        backgroundColor={isSelected ? theme.colors.selectedItemBg : undefined}
+                        backgroundColor={bg}
+                        width={dropdownWidth}
                     >
-                        <Text color="gray">  </Text>
+                        <Text backgroundColor={bg}> </Text>
                         {[...match.name].map((char, charIndex) => (
                             <Text
                                 key={charIndex}
-                                color={matchSet.has(charIndex) ? theme.colors.focusedBorder : (isSelected ? theme.colors.selectedItem : 'gray')}
+                                backgroundColor={bg}
+                                color={matchSet.has(charIndex) ? theme.colors.focusedBorder : (isSelected ? theme.colors.selectedItem : theme.colors.modalText)}
                                 bold={matchSet.has(charIndex)}
                             >
                                 {char}
                             </Text>
                         ))}
+                        <Text backgroundColor={bg}>{' '.repeat(Math.max(0, maxNameLen - match.name.length + 2))}</Text>
                     </Box>
                 );
             })}
 
-            {end < matches.length && <Text color="gray">  ↓ {matches.length - end} more</Text>}
+            {end < matches.length && (
+                <Box backgroundColor={theme.colors.modalBackground} width={dropdownWidth}>
+                    <Text color="gray"> ↓ {matches.length - end} more</Text>
+                </Box>
+            )}
         </Box>
     );
 }
