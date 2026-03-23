@@ -8,6 +8,8 @@
 import React, { useReducer, useCallback, useEffect, useMemo } from "react";
 import { Text, useInput } from "ink";
 import chalk from "chalk";
+import { useStore } from "../../state/store";
+import { tokenizeVariables, classifyVariables, renderVariableTokensWithCursor } from "../../utils/variableHighlight";
 
 interface State {
     previousValue: string;
@@ -67,9 +69,12 @@ interface Props {
     isDisabled?: boolean;
     onChange?: (value: string) => void;
     onSubmit?: (value: string) => void;
+    variableContext?: Record<string, string> | null;
+    onCursorChange?: (offset: number, value: string) => void;
+    keyInterceptor?: (input: string, key: any) => boolean;
 }
 
-export function TextInputField({ defaultValue = '', placeholder = '', isDisabled = false, onChange, onSubmit }: Props) {
+export function TextInputField({ defaultValue = '', placeholder = '', isDisabled = false, onChange, onSubmit, variableContext, onCursorChange, keyInterceptor }: Props) {
     const [state, dispatch] = useReducer(reducer, {
         previousValue: defaultValue,
         value: defaultValue,
@@ -87,8 +92,21 @@ export function TextInputField({ defaultValue = '', placeholder = '', isDisabled
             : cursor;
     }, [isDisabled, placeholder, cursor]);
 
+    const theme = useStore(s => s.theme);
+
     const renderedValue = useMemo(() => {
         if (isDisabled) return state.value;
+
+        if (variableContext && /\{\{/.test(state.value)) {
+            const tokens = tokenizeVariables(state.value);
+            const classified = classifyVariables(tokens, variableContext);
+            return renderVariableTokensWithCursor(
+                classified,
+                state.cursorOffset,
+                theme.colors.variableValid,
+                theme.colors.variableInvalid
+            );
+        }
 
         let index = 0;
         let result = state.value.length > 0 ? '' : cursor;
@@ -100,7 +118,7 @@ export function TextInputField({ defaultValue = '', placeholder = '', isDisabled
             result += cursor;
         }
         return result;
-    }, [isDisabled, state.value, state.cursorOffset, cursor]);
+    }, [isDisabled, state.value, state.cursorOffset, cursor, variableContext, theme]);
 
     useEffect(() => {
         if (state.value !== state.previousValue) {
@@ -108,11 +126,16 @@ export function TextInputField({ defaultValue = '', placeholder = '', isDisabled
         }
     }, [state.previousValue, state.value, onChange]);
 
+    useEffect(() => {
+        onCursorChange?.(state.cursorOffset, state.value);
+    }, [state.cursorOffset, state.value, onCursorChange]);
+
     const submit = useCallback(() => {
         onSubmit?.(state.value);
     }, [state.value, onSubmit]);
 
     useInput((input, key) => {
+        if (keyInterceptor?.(input, key)) return;
         if (key.upArrow || key.downArrow || (key.ctrl && input === 'c') || key.tab || (key.shift && key.tab)) {
             return;
         }

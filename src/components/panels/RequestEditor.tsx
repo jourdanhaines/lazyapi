@@ -1,6 +1,7 @@
 import React, { useMemo, useRef } from "react";
 import { Box, Text, useInput } from "ink";
 import { TextInputField } from "../shared/TextInputField";
+import { VariableTextInput } from "../shared/VariableTextInput";
 import { useStore } from "../../state/store";
 import { usePanelFocus } from "../../hooks/usePanelFocus";
 import { useTerminalSize } from "../../hooks/useTerminalSize";
@@ -8,7 +9,8 @@ import { TabBar } from "../shared/TabBar";
 import { KeyValueEditor } from "../shared/KeyValueEditor";
 import { ContentViewer } from "../shared/ContentViewer";
 import { MultiLineEditor } from "../shared/MultiLineEditor";
-import { highlightVariables } from "../../utils/syntax";
+import { tokenizeVariables, classifyVariables, renderVariableTokens } from "../../utils/variableHighlight";
+import { buildVariableContext } from "../../utils/variables";
 import { MethodBadge } from "../shared/MethodBadge";
 import { EmptyState } from "./EmptyState";
 import { projectManager } from "../../services/ProjectManager";
@@ -35,8 +37,16 @@ export function RequestEditor({ height }: Props) {
     const inputMode = useStore(s => s.inputMode);
     const theme = useStore(s => s.theme);
 
+    const activeEnv = useStore(s => s.getActiveEnvironment());
+    const dotEnvVars = useStore(s => s.dotEnvVars);
+
     const { isFocused } = usePanelFocus('editor');
     const { columns } = useTerminalSize();
+
+    const variableContext = useMemo(
+        () => buildVariableContext(activeEnv?.variables ?? [], dotEnvVars),
+        [activeEnv, dotEnvVars]
+    );
 
     const urlRef = useRef("");
 
@@ -111,17 +121,22 @@ export function RequestEditor({ height }: Props) {
                             <Box marginLeft={1} width={Math.max(1, urlWidth)} backgroundColor={theme.colors.inputBackground}>
                                 {isEditingUrl ? (
                                     <Box paddingLeft={1}>
-                                        <TextInputField
+                                        <VariableTextInput
                                             defaultValue={request.url}
                                             placeholder="Enter URL..."
+                                            variableContext={variableContext}
                                             onChange={(value) => { urlRef.current = value; }}
                                             onSubmit={handleUrlSubmit}
                                         />
                                     </Box>
                                 ) : (
                                     <Text>
-                                        {/\{\{[^}]+\}\}/.test(request.url)
-                                            ? ` ${highlightVariables(request.url)}`
+                                        {/\{\{/.test(request.url)
+                                            ? ` ${renderVariableTokens(
+                                                classifyVariables(tokenizeVariables(request.url), variableContext),
+                                                theme.colors.variableValid,
+                                                theme.colors.variableInvalid
+                                            )}`
                                             : ` ${request.url || 'Enter URL...'}`.padEnd(Math.max(1, urlWidth))}
                                     </Text>
                                 )}

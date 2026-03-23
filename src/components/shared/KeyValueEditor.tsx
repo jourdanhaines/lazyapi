@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Box, Text } from "ink";
 import { useStore } from "../../state/store";
 import type { KeyValuePair } from "../../types/request";
-import { highlightVariables } from "../../utils/syntax";
+import { tokenizeVariables, classifyVariables, renderVariableTokens } from "../../utils/variableHighlight";
+import { buildVariableContext } from "../../utils/variables";
 
 interface Props {
     pairs: KeyValuePair[];
@@ -14,6 +15,13 @@ interface Props {
 
 export function KeyValueEditor({ pairs, selectedIndex, scrollOffset, visibleCount, isFocused = true }: Props) {
     const theme = useStore(s => s.theme);
+    const activeEnv = useStore(s => s.getActiveEnvironment());
+    const dotEnvVars = useStore(s => s.dotEnvVars);
+
+    const variableContext = useMemo(
+        () => buildVariableContext(activeEnv?.variables ?? [], dotEnvVars),
+        [activeEnv, dotEnvVars]
+    );
 
     if (pairs.length === 0) {
         return (
@@ -44,11 +52,15 @@ export function KeyValueEditor({ pairs, selectedIndex, scrollOffset, visibleCoun
 
                         <Text color="gray"> = </Text>
 
-                        {pair.enabled && /\{\{[^}]+\}\}/.test(pair.value) && (
-                            <Text>{highlightVariables(pair.value)}</Text>
+                        {pair.enabled && /\{\{/.test(pair.value) && (
+                            <Text>{renderVariableTokens(
+                                classifyVariables(tokenizeVariables(pair.value), variableContext),
+                                theme.colors.variableValid,
+                                theme.colors.variableInvalid
+                            )}</Text>
                         )}
 
-                        {!(pair.enabled && /\{\{[^}]+\}\}/.test(pair.value)) && (
+                        {!(pair.enabled && /\{\{/.test(pair.value)) && (
                             <Text color={pair.enabled ? undefined : 'gray'} strikethrough={!pair.enabled}>
                                 {pair.value || '<value>'}
                             </Text>

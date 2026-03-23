@@ -129,6 +129,3 @@ export function highlightTokensWithCursor(
     return result;
 }
 
-export function highlightVariables(text: string): string {
-    return text.replace(/\{\{([^}]+)\}\}/g, (match) => COLOR_FNS.variable(match));
-}

@@ -14,6 +14,8 @@ export interface Theme {
         activeItem: string;
         inputBackground: string;
         appBackground: string;
+        variableValid: string;
+        variableInvalid: string;
     };
 }
 
@@ -34,6 +36,8 @@ export const BUILTIN_THEMES: Record<string, Theme> = {
             activeItem: 'green',
             inputBackground: 'gray',
             appBackground: '#1a1a2e',
+            variableValid: '#50fa7b',
+            variableInvalid: '#ff5555',
         },
     },
     monokai: {
@@ -52,6 +56,8 @@ export const BUILTIN_THEMES: Record<string, Theme> = {
             activeItem: '#e6db74',
             inputBackground: 'gray',
             appBackground: '#272822',
+            variableValid: '#a6e22e',
+            variableInvalid: '#f92672',
         },
     },
     dracula: {
@@ -70,6 +76,8 @@ export const BUILTIN_THEMES: Record<string, Theme> = {
             activeItem: '#50fa7b',
             inputBackground: 'gray',
             appBackground: '#282a36',
+            variableValid: '#50fa7b',
+            variableInvalid: '#ff5555',
         },
     },
     nord: {
@@ -88,6 +96,8 @@ export const BUILTIN_THEMES: Record<string, Theme> = {
             activeItem: '#a3be8c',
             inputBackground: 'gray',
             appBackground: '#2e3440',
+            variableValid: '#a3be8c',
+            variableInvalid: '#bf616a',
         },
     },
     gruvbox: {
@@ -106,6 +116,8 @@ export const BUILTIN_THEMES: Record<string, Theme> = {
             activeItem: '#fabd2f',
             inputBackground: 'gray',
             appBackground: '#282828',
+            variableValid: '#b8bb26',
+            variableInvalid: '#fb4934',
         },
     },
     catppuccin: {
@@ -124,6 +136,8 @@ export const BUILTIN_THEMES: Record<string, Theme> = {
             activeItem: '#a6e3a1',
             inputBackground: 'gray',
             appBackground: '#1e1e2e',
+            variableValid: '#a6e3a1',
+            variableInvalid: '#f38ba8',
         },
     },
 };
