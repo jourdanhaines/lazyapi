@@ -152,7 +152,6 @@ export function SettingsModal({ onClose }: Props) {
                         store.setStatusMessage('Project switched to local storage');
                     })();
                 }
-                onClose();
             }
         } else if (activeTab === 'theme') {
             if (input === 'j' || key.downArrow) {
