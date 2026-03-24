@@ -140,13 +140,16 @@ export class GitProjectManager {
 
         const sanitizedEnvs = project.environments.map(env => {
             const secretVars = env.variables.filter(v => v.isSecret);
-            const publicVars = env.variables.filter(v => !v.isSecret);
 
             if (secretVars.length > 0) {
                 secrets[env.id] = secretVars;
             }
 
-            return { ...env, variables: publicVars };
+            const sanitizedVars = env.variables.map(v =>
+                v.isSecret ? { ...v, value: '' } : v
+            );
+
+            return { ...env, variables: sanitizedVars };
         });
 
         return {
@@ -158,12 +161,22 @@ export class GitProjectManager {
     private mergeSecrets(env: Environment, secretVars: KeyValuePair[]): Environment {
         if (secretVars.length === 0) return env;
 
+        const secretMap = new Map(secretVars.map(s => [s.key, s]));
+
+        const mergedVars = env.variables.map(v => {
+            const secret = secretMap.get(v.key);
+            if (secret && v.isSecret) {
+                return { ...v, value: secret.value };
+            }
+            return v;
+        });
+
         const existingKeys = new Set(env.variables.map(v => v.key));
         const newSecrets = secretVars.filter(s => !existingKeys.has(s.key));
 
         return {
             ...env,
-            variables: [...env.variables, ...newSecrets.map(s => ({ ...s, isSecret: true }))],
+            variables: [...mergedVars, ...newSecrets.map(s => ({ ...s, isSecret: true }))],
         };
     }
 }

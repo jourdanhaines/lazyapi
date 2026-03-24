@@ -242,6 +242,12 @@ export function EnvironmentModal({ onClose }: Props) {
             );
             updateEnvironment(env.id, { variables: newVars });
             saveProject();
+        } else if (input === 's' && vars[varIndex]) {
+            const newVars = vars.map((v, i) =>
+                i === varIndex ? { ...v, isSecret: !v.isSecret } : v
+            );
+            updateEnvironment(env.id, { variables: newVars });
+            saveProject();
         } else if (input === 'd' && vars[varIndex]) {
             const newVars = vars.filter((_, i) => i !== varIndex);
             updateEnvironment(env.id, { variables: newVars });
@@ -286,7 +292,9 @@ export function EnvironmentModal({ onClose }: Props) {
     const envs = getEnvironments();
     const selectedEnv = getSelectedEnv();
 
-    function renderKvPair(pair: KeyValuePair, index: number, isSelected: boolean) {
+    function renderKvPair(pair: KeyValuePair, index: number, isSelected: boolean, isSecretCapable = false) {
+        const isSecret = isSecretCapable && pair.isSecret;
+
         return (
             <Box
                 key={index}
@@ -299,9 +307,10 @@ export function EnvironmentModal({ onClose }: Props) {
                 <Text color="gray"> = </Text>
 
                 <Text color={pair.enabled ? undefined : 'gray'} strikethrough={!pair.enabled}>
-                    {pair.value || '<value>'}
+                    {isSecret ? '••••••••' : (pair.value || '<value>')}
                 </Text>
 
+                {isSecret && <Text color="yellow"> (secret)</Text>}
                 {!pair.enabled && <Text color="gray"> (disabled)</Text>}
             </Box>
         );
@@ -380,7 +389,7 @@ export function EnvironmentModal({ onClose }: Props) {
                                 )}
 
                                 {selectedEnv.variables.map((v, index) =>
-                                    renderKvPair(v, index, index === varIndex)
+                                    renderKvPair(v, index, index === varIndex, true)
                                 )}
                             </Box>
                         )}
@@ -427,7 +436,7 @@ export function EnvironmentModal({ onClose }: Props) {
             <Box marginTop={1}>
                 <Text color={theme.colors.modalHintText}>
                     {activeTab === 'list' && '[/]: tabs  j/k: navigate  a: add  e: edit  d: delete  Enter: activate  n: none  Esc: close'}
-                    {activeTab === 'variables' && '[/]: tabs  j/k: navigate  a: add  e: edit key  v: edit value  d: delete  space: toggle  Esc: close'}
+                    {activeTab === 'variables' && '[/]: tabs  j/k: navigate  a: add  e: edit key  v: edit value  s: secret  d: delete  space: toggle  Esc: close'}
                     {activeTab === 'headers' && '[/]: tabs  j/k: navigate  e: edit key  v: edit value  a: add  d: delete  space: toggle  Esc: close'}
                 </Text>
             </Box>
