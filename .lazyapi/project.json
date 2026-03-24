@@ -1,0 +1,22 @@
+{
+    "id": "proj_SxZFBOitNcl6",
+    "name": "lazyapi",
+    "defaultHeaders": [],
+    "collection": [],
+    "environments": [
+        {
+            "id": "env_idZE6YCpSFJD",
+            "name": "local",
+            "variables": [
+                {
+                    "key": "TEST",
+                    "value": "",
+                    "enabled": true,
+                    "isSecret": true
+                }
+            ]
+        }
+    ],
+    "activeEnvironmentId": "env_idZE6YCpSFJD",
+    "storageMode": "git"
+}
