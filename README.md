@@ -35,6 +35,26 @@ lazyapi [options]
 | `--help`, `-h` | Show help |
 | `--version`, `-v` | Show version |
 
+## Headless mode
+
+Run a saved request from the CLI without launching the TUI. The full response (status, headers, body, timing) is printed to stdout as JSON; the request is also appended to history.
+
+```sh
+lazyapi --run -p blacksheep -r req_hz1x9kzz4t_W
+lazyapi --run -p blacksheep -r req_hz1x9kzz4t_W -e staging
+```
+
+Discovery:
+
+```sh
+lazyapi --list-projects                  # JSON of all projects
+lazyapi --list-requests blacksheep       # JSON of requests in a project
+```
+
+Variable interpolation uses the project's active environment plus any `.env` files in the current directory. Override the env with `-e <env-name>`.
+
+Exit codes: `0` = request sent (check `response.status` for HTTP errors), `2` = bad usage, `3` = project not found, `4` = request id not found, `5` = env not found, `6` = unresolved `{{var}}` refs, `7` = network/timeout failure.
+
 ## Layout
 
 The interface has 4 panels, navigable with Tab/Shift+Tab, arrow keys, or 1-4:
