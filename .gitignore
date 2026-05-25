@@ -6,3 +6,4 @@ dist/
 .env
 lazyapi
 lazyapi-*
+!.claude/skills/lazyapi/

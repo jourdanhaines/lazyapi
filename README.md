@@ -55,6 +55,18 @@ Variable interpolation uses the project's active environment plus any `.env` fil
 
 Exit codes: `0` = request sent (check `response.status` for HTTP errors), `2` = bad usage, `3` = project not found, `4` = request id not found, `5` = env not found, `6` = unresolved `{{var}}` refs, `7` = network/timeout failure.
 
+### Claude Code skill
+
+This repo ships a Claude Code skill at `.claude/skills/lazyapi/` that teaches Claude how to discover and run lazyapi requests on your machine. Install it into your user skills directory:
+
+```sh
+bun run install-skill          # symlinks ~/.claude/skills/lazyapi -> repo (default)
+bun run install-skill --copy   # snapshot copy instead of symlink
+bun run install-skill --force  # overwrite an existing install
+```
+
+Skills hot-reload, so no Claude Code restart is needed.
+
 ## Layout
 
 The interface has 4 panels, navigable with Tab/Shift+Tab, arrow keys, or 1-4:
